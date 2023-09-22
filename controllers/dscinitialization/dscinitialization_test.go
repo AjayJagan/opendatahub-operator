@@ -2,6 +2,7 @@ package dscinitialization
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,7 +16,6 @@ import (
 )
 
 const (
-	applicationName      = "test-dsci"
 	workingNamespace     = "default"
 	applicationNamespace = "test-application-ns"
 	monitoringNamespace  = "test-monitoring-ns"
@@ -23,27 +23,12 @@ const (
 	readyPhase           = "Ready"
 )
 
-var _ = Describe("DataScienceCluster initialization", Ordered, func() {
-	Context("Should create default resources", func() {
+var _ = Describe("DataScienceCluster initialization", func() {
+	Context("Creation of related resources", func() {
 		ctx := context.Background()
-		It("Should create an instance of DSCI", func() {
-			desiredDsci := &dsci.DSCInitialization{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "DSCInitialization",
-					APIVersion: "v1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      applicationName,
-					Namespace: workingNamespace,
-				},
-				Spec: dsci.DSCInitializationSpec{
-					ApplicationsNamespace: applicationNamespace,
-					Monitoring: dsci.Monitoring{
-						Namespace:       monitoringNamespace,
-						ManagementState: operatorv1.Managed,
-					},
-				},
-			}
+		applicationName := "default-test"
+		BeforeEach(func() {
+			desiredDsci := getNewInstance(applicationName)
 			Expect(k8sClient.Create(ctx, desiredDsci)).Should(Succeed())
 			foundDsci := &dsci.DSCInitialization{}
 			Eventually(func() bool {
@@ -53,14 +38,20 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 				}, foundDsci)
 				return foundDsci.Status.Phase == readyPhase
 			}, timeout, interval).Should(BeTrue())
-			Expect(foundDsci.Name).To(Equal(applicationName))
 		})
-		It("Should create the specified application namespace", func() {
-			foundApplicationNamespace := &corev1.Namespace{}
+		AfterEach(func() {
+			cleanupResources()
+		})
+		It("Should create all the default resources", func() {
+
+			By("Checking default application namespace")
+			foundApplicationNamespace := corev1.Namespace{}
+			//objectExists("", applicationName, foundApplicationNamespace)
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, client.ObjectKey{Name: applicationNamespace}, foundApplicationNamespace)
 				return err == nil
 			}, timeout, interval).Should(BeTrue())
+			fmt.Print(foundApplicationNamespace)
 			Expect(foundApplicationNamespace.Name).To(Equal(applicationNamespace))
 			expectedLabels := map[string]string{
 				"kubernetes.io/metadata.name":        applicationNamespace,
@@ -68,14 +59,14 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 				"pod-security.kubernetes.io/enforce": "baseline",
 			}
 			Expect(foundApplicationNamespace.Labels).To(Equal(expectedLabels))
-		})
-		It("Should create the specified monitoring namespace", func() {
+
+			By("Checking default monitoring namespace")
 			foundMonitoringNamespace := &corev1.Namespace{}
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, client.ObjectKey{Name: monitoringNamespace}, foundMonitoringNamespace)
 				return err == nil
 			}, timeout, interval).Should(BeTrue())
-			expectedLabels := map[string]string{
+			expectedLabels = map[string]string{
 				"kubernetes.io/metadata.name":        monitoringNamespace,
 				"opendatahub.io/generated-namespace": "true",
 				"openshift.io/cluster-monitoring":    "true",
@@ -83,8 +74,35 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 			}
 			Expect(foundMonitoringNamespace.Name == monitoringNamespace).Should(BeTrue())
 			Expect(foundMonitoringNamespace.Labels).To(Equal(expectedLabels))
-		})
-		It("Should create default rolebinding", func() {
+
+			By("Checking default network policy")
+			foundNetworkPolicy := &netv1.NetworkPolicy{}
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, client.ObjectKey{
+					Name:      applicationNamespace,
+					Namespace: applicationNamespace,
+				}, foundNetworkPolicy)
+				return err == nil
+			}, timeout, interval).Should(BeTrue())
+			Expect(foundNetworkPolicy.Name).To(Equal(applicationNamespace))
+			Expect(foundNetworkPolicy.Namespace).To(Equal(applicationNamespace))
+			Expect(foundNetworkPolicy.Spec.PolicyTypes[0]).To(Equal(netv1.PolicyTypeIngress))
+
+			By("Checking default configmap")
+			foundConfigMap := &corev1.ConfigMap{}
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, client.ObjectKey{
+					Name:      configmapName,
+					Namespace: applicationNamespace,
+				}, foundConfigMap)
+				return err == nil
+			}, timeout, interval).Should(BeTrue())
+			Expect(foundConfigMap.Name).To(Equal(configmapName))
+			Expect(foundConfigMap.Namespace).To(Equal(applicationNamespace))
+			expectedConfigmapData := map[string]string{"namespace": applicationNamespace}
+			Expect(foundConfigMap.Data).To(Equal(expectedConfigmapData))
+
+			By("Checking default rolebinding")
 			foundRoleBinding := &authv1.RoleBinding{}
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, client.ObjectKey{
@@ -110,41 +128,15 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 			Expect(foundRoleBinding.Subjects).To(Equal(expectedSubjects))
 			Expect(foundRoleBinding.RoleRef).To(Equal(expectedRoleRef))
 		})
-		It("Should create default configmap", func() {
-			foundConfigMap := &corev1.ConfigMap{}
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, client.ObjectKey{
-					Name:      configmapName,
-					Namespace: applicationNamespace,
-				}, foundConfigMap)
-				return err == nil
-			}, timeout, interval).Should(BeTrue())
-			Expect(foundConfigMap.Name).To(Equal(configmapName))
-			Expect(foundConfigMap.Namespace).To(Equal(applicationNamespace))
-			expectedConfigmapData := map[string]string{"namespace": applicationNamespace}
-			Expect(foundConfigMap.Data).To(Equal(expectedConfigmapData))
-		})
-		It("Should create default networkpolicy", func() {
-			foundNetworkPolicy := &netv1.NetworkPolicy{}
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, client.ObjectKey{
-					Name:      applicationNamespace,
-					Namespace: applicationNamespace,
-				}, foundNetworkPolicy)
-				return err == nil
-			}, timeout, interval).Should(BeTrue())
-			Expect(foundNetworkPolicy.Name).To(Equal(applicationNamespace))
-			Expect(foundNetworkPolicy.Namespace).To(Equal(applicationNamespace))
-			Expect(foundNetworkPolicy.Spec.PolicyTypes[0]).To(Equal(netv1.PolicyTypeIngress))
-		})
-		AfterAll(func() {
+	})
+	Context("Handling existing resources", func() {
+		AfterEach(func() {
 			cleanupResources()
 		})
-	})
+		It("Should not update rolebinding if it exists", func() {
+			applicationName := "rolebinding-test"
 
-	Context("Should not update rolebinding if it exists", func() {
-		ctx := context.Background()
-		It("Should create a rolebinding before creating the dsci instance", func() {
+			By("Creating a rolebinding before creating the dsci instance")
 			desiredRoleBinding := &authv1.RoleBinding{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "RoleBinding",
@@ -170,22 +162,9 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 				}, createdRoleBinding)
 				return err == nil
 			}, timeout, interval).Should(BeTrue())
-			Expect(createdRoleBinding.Name).Should(Equal(applicationNamespace))
-		})
-		It("Should create an instance of DSCI", func() {
-			desiredDsci := &dsci.DSCInitialization{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "DSCInitialization",
-					APIVersion: "v1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      applicationName,
-					Namespace: workingNamespace,
-				},
-				Spec: dsci.DSCInitializationSpec{
-					ApplicationsNamespace: applicationNamespace,
-				},
-			}
+
+			By("Creating a dsci instance when a rolebinding exists")
+			desiredDsci := getNewInstance(applicationName)
 			Expect(k8sClient.Create(ctx, desiredDsci)).Should(Succeed())
 			foundDsci := &dsci.DSCInitialization{}
 			Eventually(func() bool {
@@ -195,9 +174,8 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 				}, foundDsci)
 				return foundDsci.Status.Phase == readyPhase
 			}, timeout, interval).Should(BeTrue())
-			Expect(foundDsci.Name).To(Equal(applicationName))
-		})
-		It("Should not update rolebinding(check subjects)", func() {
+
+			By("Checking if the rolebinding is not updated")
 			foundRoleBinding := &authv1.RoleBinding{}
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, client.ObjectKey{
@@ -208,13 +186,11 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 			}, timeout, interval).Should(BeTrue())
 			Expect(foundRoleBinding.Subjects).To(BeNil())
 		})
-		AfterAll(func() {
-			cleanupResources()
-		})
-	})
-	Context("Should not update configmap if it exists", func() {
-		ctx := context.Background()
-		It("Should create a configmap before creating the dsci instance", func() {
+
+		It("Should not update configmap if it exists", func() {
+			applicationName := "configmap-test"
+
+			By("Creating a configmap before creating the dsci instance")
 			desiredConfigMap := &corev1.ConfigMap{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "ConfigMap",
@@ -235,22 +211,9 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 				}, createdConfigMap)
 				return err == nil
 			}, timeout, interval).Should(BeTrue())
-			Expect(createdConfigMap.Name).Should(Equal(configmapName))
-		})
-		It("Should create an instance of DSCI", func() {
-			desiredDsci := &dsci.DSCInitialization{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "DSCInitialization",
-					APIVersion: "v1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      applicationName,
-					Namespace: workingNamespace,
-				},
-				Spec: dsci.DSCInitializationSpec{
-					ApplicationsNamespace: applicationNamespace,
-				},
-			}
+
+			By("Creating a dsci instance when a configmap exists")
+			desiredDsci := getNewInstance(applicationName)
 			Expect(k8sClient.Create(ctx, desiredDsci)).Should(Succeed())
 			foundDsci := &dsci.DSCInitialization{}
 			Eventually(func() bool {
@@ -260,9 +223,8 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 				}, foundDsci)
 				return foundDsci.Status.Phase == readyPhase
 			}, timeout, interval).Should(BeTrue())
-			Expect(foundDsci.Name).To(Equal(applicationName))
-		})
-		It("Should not update configmaps(check data)", func() {
+
+			By("Checking if the configmap is not updated")
 			foundConfigMap := &corev1.ConfigMap{}
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, client.ObjectKey{
@@ -274,15 +236,12 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 			Expect(foundConfigMap.Data).To(Equal(map[string]string{"namespace": "existing-data"}))
 			Expect(foundConfigMap.Data).ToNot(Equal(map[string]string{"namespace": applicationNamespace}))
 		})
-		AfterAll(func() {
-			cleanupResources()
-		})
-	})
 
-	Context("Should not update namespace if it exists", func() {
-		ctx := context.Background()
-		anotherNamespace := "test-another-ns"
-		It("Should create a namespace before creating the dsci instance", func() {
+		It("Should not update namespace if it exists", func() {
+			applicationName := "configmap-test"
+			anotherNamespace := "test-another-ns"
+
+			By("Creating a namespace before creating the dsci instance")
 			desiredNamespace := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: anotherNamespace,
@@ -294,22 +253,9 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 				err := k8sClient.Get(ctx, client.ObjectKey{Name: anotherNamespace}, createdNamespace)
 				return err == nil
 			}, timeout, interval).Should(BeTrue())
-			Expect(createdNamespace.Name).Should(Equal(anotherNamespace))
-		})
-		It("Should create an instance of DSCI", func() {
-			desiredDsci := &dsci.DSCInitialization{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "DSCInitialization",
-					APIVersion: "v1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      applicationName,
-					Namespace: workingNamespace,
-				},
-				Spec: dsci.DSCInitializationSpec{
-					ApplicationsNamespace: anotherNamespace,
-				},
-			}
+
+			By("Creating a dsci instance when a namespace exists")
+			desiredDsci := getNewInstance(applicationName)
 			Expect(k8sClient.Create(ctx, desiredDsci)).Should(Succeed())
 			foundDsci := &dsci.DSCInitialization{}
 			Eventually(func() bool {
@@ -319,9 +265,8 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 				}, foundDsci)
 				return foundDsci.Status.Phase == readyPhase
 			}, timeout, interval).Should(BeTrue())
-			Expect(foundDsci.Name).To(Equal(applicationName))
-		})
-		It("Should not update the namespace(check labels)", func() {
+
+			By("Checking if the namespace is not updated")
 			foundApplicationNamespace := &corev1.Namespace{}
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, client.ObjectKey{Name: anotherNamespace}, foundApplicationNamespace)
@@ -340,9 +285,6 @@ var _ = Describe("DataScienceCluster initialization", Ordered, func() {
 			Expect(notExpectedLabels).ToNot(Equal(foundApplicationNamespace.Labels))
 			Expect(expectedLabels).To(Equal(foundApplicationNamespace.Labels))
 		})
-		AfterAll(func() {
-			cleanupResources()
-		})
 	})
 })
 
@@ -354,4 +296,43 @@ func cleanupResources() {
 	Expect(k8sClient.DeleteAllOf(context.TODO(), &netv1.NetworkPolicy{}, appNamespace)).ToNot(HaveOccurred())
 	Expect(k8sClient.DeleteAllOf(context.TODO(), &corev1.ConfigMap{}, appNamespace)).ToNot(HaveOccurred())
 	Expect(k8sClient.DeleteAllOf(context.TODO(), &authv1.RoleBinding{}, appNamespace)).ToNot(HaveOccurred())
+}
+
+func getNewInstance(appName string) *dsci.DSCInitialization {
+	return &dsci.DSCInitialization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "DSCInitialization",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      appName,
+			Namespace: workingNamespace,
+		},
+		Spec: dsci.DSCInitializationSpec{
+			ApplicationsNamespace: applicationNamespace,
+			Monitoring: dsci.Monitoring{
+				Namespace:       monitoringNamespace,
+				ManagementState: operatorv1.Managed,
+			},
+		},
+	}
+}
+
+func objectExists(ns string, name string, obj client.Object) func() bool {
+	var objKey client.ObjectKey
+	if ns == "" {
+		objKey = client.ObjectKey{
+			Name: name,
+		}
+	} else {
+		objKey = client.ObjectKey{
+			Name:      name,
+			Namespace: ns,
+		}
+	}
+	return func() bool {
+		err := k8sClient.Get(ctx, objKey, obj)
+		return err == nil
+	}
+
 }

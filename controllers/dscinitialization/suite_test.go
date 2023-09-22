@@ -80,6 +80,7 @@ var _ = BeforeSuite(func() {
 			filepath.Join(rootPath, "config", "crd", "bases"),
 			filepath.Join(rootPath, "config", "crd", "external"),
 		},
+		BinaryAssetsDirectory: "/Users/ajay/Library/Application Support/io.kubebuilder.envtest/k8s/1.24.2-darwin-arm64",
 		ErrorIfCRDPathMissing: true,
 	}
 
