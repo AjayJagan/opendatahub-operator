@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package datasciencecluster
+package datasciencecluster_test
 
 import (
 	"path/filepath"
 	"testing"
 
+	. "github.com/onsi/ginkgo/v2" //nolint:revive // This is the standard for ginkgo and gomega.
+	. "github.com/onsi/gomega"    //nolint:revive // This is the standard for ginkgo and gomega.
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -28,9 +30,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	datascienceclusterv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/datasciencecluster/v1"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to

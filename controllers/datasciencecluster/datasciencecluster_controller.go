@@ -24,6 +24,9 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/upgrade"
+	"k8s.io/client-go/rest"
+
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-multierror"
 	v1 "github.com/openshift/api/operator/v1"
@@ -52,7 +55,7 @@ import (
 )
 
 // DataScienceClusterReconciler reconciles a DataScienceCluster object.
-type DataScienceClusterReconciler struct {
+type DataScienceClusterReconciler struct { //nolint:golint,revive // Redable name.
 	client.Client
 	Scheme     *runtime.Scheme
 	Log        logr.Logger
@@ -63,7 +66,7 @@ type DataScienceClusterReconciler struct {
 }
 
 // DataScienceClusterConfig passing Spec of DSCI for reconcile DataScienceCluster.
-type DataScienceClusterConfig struct {
+type DataScienceClusterConfig struct { //nolint:golint,revive // Redable name.
 	DSCISpec *dsci.DSCInitializationSpec
 }
 
@@ -73,8 +76,8 @@ const (
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-func (r *DataScienceClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	r.Log.Info("Reconciling DataScienceCluster resources", "Request.Name", req.Name)
+func (r *DataScienceClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) { //nolint:funlen // Reconcile func is usually long.
+	r.Log.Info("Reconciling DataScienceCluster resources", "Request.Namespace", req.Namespace, "Request.Name", req.Name)
 
 	instances := &dsc.DataScienceClusterList{}
 	if err := r.Client.List(ctx, instances); err != nil {
@@ -94,7 +97,7 @@ func (r *DataScienceClusterReconciler) Reconcile(ctx context.Context, req ctrl.R
 		// Owned objects are automatically garbage collected. For additional cleanup logic use operatorUninstall function.
 		// Return and don't requeue
 		if upgrade.HasDeleteConfigMap(r.Client) {
-			return reconcile.Result{}, fmt.Errorf("error while operator uninstall: %v",
+			return reconcile.Result{}, fmt.Errorf("error while operator uninstall: %w",
 				upgrade.OperatorUninstall(r.Client, r.RestConfig))
 		}
 		return ctrl.Result{}, nil
@@ -125,9 +128,8 @@ func (r *DataScienceClusterReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if err != nil {
 			r.reportError(err, instance, "failed to update DataScienceCluster condition")
 			return ctrl.Result{}, err
-		} else {
-			return ctrl.Result{}, nil
 		}
+		return ctrl.Result{}, nil
 	case 1:
 		dscInitializationSpec := dsciInstances.Items[0].Spec
 		dscInitializationSpec.DeepCopyInto(r.DataScienceCluster.DSCISpec)
@@ -264,7 +266,7 @@ func (r *DataScienceClusterReconciler) reconcileSubComponent(ctx context.Context
 			}
 		})
 		return instance, err
-	} else {
+	} else { //nolint:golint,revive // This else is for redability.
 		// reconciliation succeeded: update status accordingly
 		instance, err = r.updateStatus(ctx, instance, func(saved *dsc.DataScienceCluster) {
 			if saved.Status.InstalledComponents == nil {
@@ -374,9 +376,8 @@ func (r *DataScienceClusterReconciler) watchDataScienceClusterResources(a client
 				return []reconcile.Request{{
 					NamespacedName: types.NamespacedName{Name: instanceList.Items[0].Name},
 				}}
-			} else {
-				return nil
 			}
+			return nil
 		}
 		return []reconcile.Request{{
 			NamespacedName: types.NamespacedName{Name: instanceList.Items[0].Name},

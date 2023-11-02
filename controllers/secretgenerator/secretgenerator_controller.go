@@ -54,7 +54,7 @@ var secGenLog = log.Log.WithName("secret-generator")
 // +kubebuilder:rbac:groups="core",resources=secrets/finalizers,verbs=*
 
 // SecretGeneratorReconciler holds the controller configuration.
-type SecretGeneratorReconciler struct {
+type SecretGeneratorReconciler struct { //nolint:golint,revive // Redable name.
 	Client client.Client
 	Scheme *runtime.Scheme
 }
@@ -190,9 +190,8 @@ func (r *SecretGeneratorReconciler) getRoute(ctx context.Context, name string, n
 		}
 		if route.Spec.Host == "" {
 			return false, nil
-		} else {
-			return true, nil
 		}
+		return true, nil
 	})
 	if err != nil {
 		return nil, err

@@ -13,35 +13,53 @@ linters-settings:
       - dot
     skip-generated: false
     custom-order: true
-
+  errcheck:
+    check-type-assertions: true
+  exhaustive:
+    check:
+      - switch
+    default-signifies-exhaustive: true
+  funlen:
+    lines: 100
+    statements: 100
+    ignore-comments: true
+  nolintlint:
+    allow-no-explanation: [ funlen, gocognit, lll ]
+    require-explanation: true
+    require-specific: true
 linters:
-  disable-all: true
-  enable:
-    - bodyclose
-    - dogsled
-    - dupl
-    - errcheck
-    - exportloopref
-    - gci
-    - goconst
-    - gocritic
-    - gocyclo
+  enable-all: true
+  disable:
+    - containedctx # detects struct contained context.Context field
+    - contextcheck # [too many false positives] checks the function whether use a non-inherited context
+    - depguard # [replaced by gomodguard] checks if package imports are in a list of acceptable packages
+    - exhaustivestruct # Prevents empty struct. We use a lot of these so I think it is safe to disable.
+    - exhaustruct # Prevents empty struct. We use a lot of these so I think it is safe to disable.
+    - gci # should be removed after pr merge
+    - gochecknoglobals # Prevents use of global vars.
+    - gochecknoinits # Doesnot allow func with init name
+    - goerr113 # [too strict] checks the errors handling expressions
+    - godox # complains about TODO: comments
     - gofmt
-    - goprintffuncname
-    - gosimple
-    - govet
-    - ineffassign
-    - misspell
-    - nakedret
-    - nolintlint
-    - staticcheck
-    - stylecheck
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - whitespace
-    - lll
+    - gofumpt
+    - gomnd # Doesnot allow hardcoded numbers
+    - gomoddirectives # Doesnot allow replace in go mod file
+    - nlreturn # [too strict and mostly code is not more readable] checks for a new line before return and branch statements to increase code clarity
+    - nonamedreturns # named returns are more readable
+    - nosnakecase # snakecase is used in a lot of places. Need to check if that is required.
+    - paralleltest # [too many false positives] detects missing usage of t.Parallel() method in your Go test
+    - tagliatelle
+    - varnamelen # doesnot allow shorter names like c,k etc. But golang prefers short named vars.
+    - wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines
+    - wrapcheck # check if this is required. Prevents direct return of err.
+
+    # The below ones needs to be checked if needed
+    - nestif # check if this is required
+    - forbidigo # check if required
+    - gocognit # Too many changes, need to check
+    - interfacer # This is depricated
+    - nilnil # This should be checked
+    - cyclop # This should be checked
 
 issues:
   exclude-rules:

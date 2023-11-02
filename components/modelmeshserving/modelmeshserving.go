@@ -128,9 +128,7 @@ func (m *ModelMeshServing) ReconcileComponent(cli client.Client, owner metav1.Ob
 		}
 	}
 	if err := deploy.DeployManifestsFromPath(cli, owner, DependentPath, dscispec.ApplicationsNamespace, m.GetComponentName(), enabled); err != nil {
-		if strings.Contains(err.Error(), "spec.selector") && strings.Contains(err.Error(), "field is immutable") {
-			// ignore this error
-		} else {
+		if !strings.Contains(err.Error(), "spec.selector") && !strings.Contains(err.Error(), "field is immutable") {
 			return err
 		}
 	}

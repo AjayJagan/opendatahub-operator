@@ -1,48 +1,50 @@
-package secretgenerator
+package secretgenerator_test
 
 import (
 	"errors"
 	"testing"
+
+	"github.com/opendatahub-io/opendatahub-operator/v2/controllers/secretgenerator"
 )
 
 func TestNewSecret(t *testing.T) {
 	cases := map[string]struct {
 		annotations map[string]string
-		secret      Secret
+		secret      secretgenerator.Secret
 		err         error
 	}{
 		"Annotations are not defined": {
 			annotations: map[string]string{},
-			err:         errors.New(errEmptyAnnotation),
+			err:         errors.New(secretgenerator.ErrEmptyAnnotation),
 		},
 		"Annotation name is not defined": {
 			annotations: map[string]string{
 				"secret-generator.opendatahub.io/key": "example",
 			},
-			err: errors.New(errNameAnnotationNotFound),
+			err: errors.New(secretgenerator.ErrNameAnnotationNotFound),
 		},
 		"Annotation type is not defined": {
 			annotations: map[string]string{
 				"secret-generator.opendatahub.io/name": "example",
 			},
-			err: errors.New(errTypeAnnotationNotFound),
+			err: errors.New(secretgenerator.ErrTypeAnnotationNotFound),
 		},
 		"Secret type is not supported": {
 			annotations: map[string]string{
 				"secret-generator.opendatahub.io/name": "example",
 				"secret-generator.opendatahub.io/type": "ssh",
 			},
-			err: errors.New(errUnsupportedType),
+			err: errors.New(secretgenerator.ErrUnsupportedType),
 		},
 		"Generate a random string secret": {
 			annotations: map[string]string{
 				"secret-generator.opendatahub.io/name": "example",
 				"secret-generator.opendatahub.io/type": "random",
 			},
-			secret: Secret{
+			secret: secretgenerator.Secret{
 				Name:       "example",
 				Type:       "random",
-				Complexity: SECRET_DEFAULT_COMPLEXITY,
+				Complexity: secretgenerator.SECRET_DEFAULT_COMPLEXITY,
 			},
 		},
 		"Generate a random string secret with custom complexity": {
@@ -51,7 +53,7 @@ func TestNewSecret(t *testing.T) {
 				"secret-generator.opendatahub.io/type":       "random",
 				"secret-generator.opendatahub.io/complexity": "128",
 			},
-			secret: Secret{
+			secret: secretgenerator.Secret{
 				Name:       "example",
 				Type:       "random",
 				Complexity: 128,
@@ -62,10 +64,10 @@ func TestNewSecret(t *testing.T) {
 				"secret-generator.opendatahub.io/name": "example",
 				"secret-generator.opendatahub.io/type": "oauth",
 			},
-			secret: Secret{
+			secret: secretgenerator.Secret{
 				Name:       "example",
 				Type:       "oauth",
-				Complexity: SECRET_DEFAULT_COMPLEXITY,
+				Complexity: secretgenerator.SECRET_DEFAULT_COMPLEXITY,
 			},
 		},
 		"Generate an OAuth secret with custom complexity": {
@@ -74,7 +76,7 @@ func TestNewSecret(t *testing.T) {
 				"secret-generator.opendatahub.io/type":       "oauth",
 				"secret-generator.opendatahub.io/complexity": "24",
 			},
-			secret: Secret{
+			secret: secretgenerator.Secret{
 				Name:       "example",
 				Type:       "oauth",
 				Complexity: 24,
@@ -83,6 +85,7 @@ func TestNewSecret(t *testing.T) {
 	}
 
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			secret, err := NewSecretFrom(tc.annotations)
 			if err != nil {

@@ -48,7 +48,7 @@ const (
 )
 
 // DSCInitializationReconciler reconciles a DSCInitialization object.
-type DSCInitializationReconciler struct {
+type DSCInitializationReconciler struct { //nolint:golint,revive // Redable name.
 	client.Client
 	Scheme                *runtime.Scheme
 	Log                   logr.Logger
@@ -63,8 +63,8 @@ type DSCInitializationReconciler struct {
 // +kubebuilder:rbac:groups="kfdef.apps.kubeflow.org",resources=kfdefs,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile contains controller logic specific to DSCInitialization instance updates.
-func (r *DSCInitializationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	r.Log.Info("Reconciling DSCInitialization.", "DSCInitialization Request.Name", req.Name)
+func (r *DSCInitializationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) { //nolint:funlen //Reconcile func is usually long.
+	r.Log.Info("Reconciling DSCInitialization.", "DSCInitialization", req.Namespace, "Request.Name", req.Name)
 
 	instances := &dsci.DSCInitializationList{}
 	if err := r.Client.List(ctx, instances); err != nil {

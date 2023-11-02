@@ -94,7 +94,7 @@ func (d *Dashboard) ReconcileComponent(cli client.Client, owner metav1.Object, d
 			}
 
 			if err := d.deployCRDsForPlatform(cli, owner, dscispec.ApplicationsNamespace, platform); err != nil {
-				return fmt.Errorf("failed to deploy dashboard crds %s: %v", PathCRDs, err)
+				return fmt.Errorf("failed to deploy dashboard crds %s: %w", PathCRDs, err)
 			}
 		}
 
@@ -105,7 +105,7 @@ func (d *Dashboard) ReconcileComponent(cli client.Client, owner metav1.Object, d
 			}
 
 			if err := d.deployCRDsForPlatform(cli, owner, dscispec.ApplicationsNamespace, platform); err != nil {
-				return fmt.Errorf("failed to deploy dashboard crds %s: %v", PathCRDs, err)
+				return fmt.Errorf("failed to deploy dashboard crds %s: %w", PathCRDs, err)
 			}
 
 			if err := d.applyRhodsSpecificConfigs(cli, owner, dscispec.ApplicationsNamespace, platform); err != nil {
@@ -147,6 +147,8 @@ func (d *Dashboard) ReconcileComponent(cli client.Client, owner metav1.Object, d
 		if err := d.deployConsoleLink(cli, owner, dscispec.ApplicationsNamespace, ComponentNameSupported, sectionTitle); err != nil {
 			return err
 		}
+	default:
+		return nil
 	}
 
 	return nil

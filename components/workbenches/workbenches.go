@@ -18,9 +18,9 @@ import (
 var (
 	ComponentName          = "workbenches"
 	DependentComponentName = "notebooks"
-	// manifests for nbc in ODH and downstream + downstream use it for imageparams
+	// manifests for nbc in ODH and downstream + downstream use it for imageparams.
 	notebookControllerPath = deploy.DefaultManifestPath + "/odh-notebook-controller/odh-notebook-controller/base"
-	// manifests for ODH nbc
+	// manifests for ODH nbc.
 	kfnotebookControllerPath    = deploy.DefaultManifestPath + "/odh-notebook-controller/kf-notebook-controller/overlays/openshift"
 	notebookImagesPath          = deploy.DefaultManifestPath + "/notebooks/overlays/additional"
 	notebookImagesPathSupported = deploy.DefaultManifestPath + "/jupyterhub/notebook-images/overlays/additional"
@@ -157,10 +157,9 @@ func (w *Workbenches) ReconcileComponent(cli client.Client, owner metav1.Object,
 			ComponentName,
 			enabled)
 		return err
-	} else {
-		err = deploy.DeployManifestsFromPath(cli, owner, notebookImagesPathSupported, dscispec.ApplicationsNamespace, ComponentName, enabled)
-		return err
 	}
+	err = deploy.DeployManifestsFromPath(cli, owner, notebookImagesPathSupported, dscispec.ApplicationsNamespace, ComponentName, enabled)
+	return err
 }
 
 func (w *Workbenches) DeepCopyInto(target *Workbenches) {

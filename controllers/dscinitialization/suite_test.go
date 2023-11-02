@@ -22,6 +22,9 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/onsi/ginkgo/v2" //nolint:revive // This is the standard for ginkgo and gomega.
+	. "github.com/onsi/gomega"    //nolint:revive // This is the standard for ginkgo and gomega.
+
 	routev1 "github.com/openshift/api/route/v1"
 	userv1 "github.com/openshift/api/user/v1"
 	ofapi "github.com/operator-framework/api/pkg/operators/v1alpha1"
@@ -44,9 +47,6 @@ import (
 	dscinitializationv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
 	dsci "github.com/opendatahub-io/opendatahub-operator/v2/controllers/dscinitialization"
 	"github.com/opendatahub-io/opendatahub-operator/v2/tests/envtestutil"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to

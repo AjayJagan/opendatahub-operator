@@ -60,7 +60,7 @@ type Monitoring struct {
 type DevFlags struct {
 	// Custom manifests uri for odh-manifests
 	// +optional
-	ManifestsUri string `json:"manifestsUri,omitempty"` //nolint
+	ManifestsUri string `json:"manifestsUri,omitempty"` //nolint:golint,revive,stylecheck // Auto-generated file.
 }
 
 // DSCInitializationStatus defines the observed state of DSCInitialization.

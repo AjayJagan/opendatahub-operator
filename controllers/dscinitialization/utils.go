@@ -32,7 +32,7 @@ var (
 // - Pod security labels for baseline permissions
 // - ConfigMap  'odh-common-config'
 // - Network Policies 'opendatahub' that allow traffic between the ODH namespaces
-// - RoleBinding 'opendatahub'
+// - RoleBinding 'opendatahub'.
 func (r *DSCInitializationReconciler) createOdhNamespace(ctx context.Context, dscInit *dsci.DSCInitialization, name string) error {
 	// Expected namespace for the given name
 	desiredNamespace := &corev1.Namespace{
@@ -304,9 +304,8 @@ func (r *DSCInitializationReconciler) waitForManagedSecret(ctx context.Context, 
 				return false, nil
 			}
 			return false, err
-		} else {
-			return true, nil
 		}
+		return true, nil
 	})
 
 	return managedSecret, err
@@ -320,11 +319,9 @@ func GenerateRandomHex(length int) ([]byte, error) {
 	randomBytes := make([]byte, numBytes)
 
 	// Read random bytes from the crypto/rand source
-	_, err := rand.Read(randomBytes)
-	if err != nil {
+	if _, err := rand.Read(randomBytes); err != nil {
 		return nil, err
 	}
-
 	return randomBytes, nil
 }
 

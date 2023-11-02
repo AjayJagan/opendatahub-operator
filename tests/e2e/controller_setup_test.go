@@ -1,4 +1,4 @@
-package e2e
+package e2e_test
 
 import (
 	"context"
@@ -53,7 +53,7 @@ type testContext struct {
 	ctx context.Context
 }
 
-func NewTestContext() (*testContext, error) {
+func NewTestContext() (*testContext, error) { //nolint:golint,revive // This is a test related type.
 	// GetConfig(): If KUBECONFIG env variable is set, it is used to create
 	// the client, else the inClusterConfig() is used.
 	// Lastly if none of them are set, it uses  $HOME/.kube/config to create the client.

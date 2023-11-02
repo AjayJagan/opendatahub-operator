@@ -43,7 +43,7 @@ func (t *TrustyAI) GetComponentName() string {
 	return ComponentName
 }
 
-// Verifies that TrustyAI implements ComponentInterface
+// Verifies that TrustyAI implements ComponentInterface.
 var _ components.ComponentInterface = (*TrustyAI)(nil)
 
 func (t *TrustyAI) ReconcileComponent(cli client.Client, owner metav1.Object, dscispec *dsci.DSCInitializationSpec) error {

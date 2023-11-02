@@ -9,18 +9,18 @@ import (
 )
 
 const (
-	SECRET_NAME_ANNOTATION         = "secret-generator.opendatahub.io/name"               //nolint
-	SECRET_TYPE_ANNOTATION         = "secret-generator.opendatahub.io/type"               //nolint
-	SECRET_LENGTH_ANNOTATION       = "secret-generator.opendatahub.io/complexity"         //nolint
-	SECRET_OAUTH_CLIENT_ANNOTATION = "secret-generator.opendatahub.io/oauth-client-route" //nolint
-	SECRET_DEFAULT_COMPLEXITY      = 16                                                   //nolint
+	SECRET_NAME_ANNOTATION         = "secret-generator.opendatahub.io/name"               //nolint:golint,revive,stylecheck //CAPS is preferred for const
+	SECRET_TYPE_ANNOTATION         = "secret-generator.opendatahub.io/type"               //nolint:golint,revive,stylecheck //CAPS is preferred for const
+	SECRET_LENGTH_ANNOTATION       = "secret-generator.opendatahub.io/complexity"         //nolint:golint,revive,stylecheck //CAPS is preferred for const
+	SECRET_OAUTH_CLIENT_ANNOTATION = "secret-generator.opendatahub.io/oauth-client-route" //nolint:golint,revive,stylecheck //CAPS is preferred for const
+	SECRET_DEFAULT_COMPLEXITY      = 16                                                   //nolint:golint,revive,stylecheck //CAPS is preferred for const
 
 	letterRunes = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-	errEmptyAnnotation        = "secret annotations is empty"
-	errNameAnnotationNotFound = "name annotation not found in secret"
-	errTypeAnnotationNotFound = "type annotation not found in secret"
-	errUnsupportedType        = "secret type is not supported"
+	ErrEmptyAnnotation        = "secret annotations is empty"
+	ErrNameAnnotationNotFound = "name annotation not found in secret"
+	ErrTypeAnnotationNotFound = "type annotation not found in secret"
+	ErrUnsupportedType        = "secret type is not supported"
 )
 
 type Secret struct {
@@ -34,7 +34,7 @@ type Secret struct {
 func NewSecretFrom(annotations map[string]string) (*Secret, error) {
 	// Check if annotations is not empty
 	if len(annotations) == 0 {
-		return nil, errors.New(errEmptyAnnotation)
+		return nil, errors.New(ErrEmptyAnnotation)
 	}
 
 	var secret Secret
@@ -43,14 +43,14 @@ func NewSecretFrom(annotations map[string]string) (*Secret, error) {
 	if secretName, found := annotations[SECRET_NAME_ANNOTATION]; found {
 		secret.Name = secretName
 	} else {
-		return nil, errors.New(errNameAnnotationNotFound)
+		return nil, errors.New(ErrNameAnnotationNotFound)
 	}
 
 	// Get type from annotation
 	if secretType, found := annotations[SECRET_TYPE_ANNOTATION]; found {
 		secret.Type = secretType
 	} else {
-		return nil, errors.New(errTypeAnnotationNotFound)
+		return nil, errors.New(ErrTypeAnnotationNotFound)
 	}
 
 	// Get complexity from annotation
@@ -107,7 +107,7 @@ func generateSecretValue(secret *Secret) error {
 		secret.Value = base64.StdEncoding.EncodeToString(
 			[]byte(base64.StdEncoding.EncodeToString(randomValue)))
 	default:
-		return errors.New(errUnsupportedType)
+		return errors.New(ErrUnsupportedType)
 	}
 
 	return nil

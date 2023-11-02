@@ -1,4 +1,4 @@
-package e2e
+package e2e_test
 
 import (
 	"context"
@@ -43,7 +43,7 @@ func (tc *testContext) testDSCDeletion() error {
 	if err == nil {
 		dscerr := tc.customClient.Delete(tc.ctx, expectedDSC, &client.DeleteOptions{})
 		if dscerr != nil {
-			return fmt.Errorf("error deleting DSC instance %s: %v", expectedDSC.Name, dscerr)
+			return fmt.Errorf("error deleting DSC instance %s: %w", expectedDSC.Name, dscerr)
 		}
 	} else if !errors.IsNotFound(err) {
 		if err != nil {
@@ -66,9 +66,8 @@ func (tc *testContext) testApplicationDeletion(component components.ComponentInt
 		}
 		if len(appList.Items) != 0 {
 			return false, nil
-		} else {
-			return true, nil
 		}
+		return true, nil
 	}); err != nil {
 		return fmt.Errorf("error deleting component: %v", component.GetComponentName())
 	}

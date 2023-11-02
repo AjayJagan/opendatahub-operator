@@ -3,6 +3,9 @@ package dscinitialization_test
 import (
 	"context"
 
+	. "github.com/onsi/ginkgo/v2" //nolint:revive // This is the standard for ginkgo and gomega.
+	. "github.com/onsi/gomega"    //nolint:revive // This is the standard for ginkgo and gomega.
+	dsci "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
@@ -50,7 +53,10 @@ var _ = Describe("DataScienceCluster initialization", func() {
 		It("Should create default monitoring namespace", func() {
 			// then
 			foundMonitoringNamespace := &corev1.Namespace{}
-			Eventually(Eventually(namespaceExists(monitoringNamespace, foundMonitoringNamespace), timeout, interval).Should(BeTrue()), timeout, interval).Should(BeTrue())
+			Eventually(
+				Eventually(
+					namespaceExists(monitoringNamespace, foundMonitoringNamespace), timeout, interval).Should, timeout, interval).
+				WithArguments(BeTrue()).Should(BeTrue())
 			Expect(foundMonitoringNamespace.Name).Should(Equal(monitoringNamespace))
 		})
 
@@ -199,7 +205,7 @@ var _ = Describe("DataScienceCluster initialization", func() {
 	})
 })
 
-// cleanup utility func
+// cleanup utility func.
 func cleanupResources() {
 	defaultNamespace := client.InNamespace(workingNamespace)
 	appNamespace := client.InNamespace(applicationNamespace)

@@ -35,9 +35,9 @@ import (
 
 const (
 	// DeleteConfigMapLabel is the label for configMap used to trigger operator uninstall
-	// TODO: Label should be updated if addon name changes
+	// TODO: Label should be updated if addon name changes.
 	DeleteConfigMapLabel = "api.openshift.com/addon-managed-odh-delete"
-	// odhGeneratedNamespaceLabel is the label added to all the namespaces genereated by odh-deployer
+	// odhGeneratedNamespaceLabel is the label added to all the namespaces genereated by odh-deployer.
 	odhGeneratedNamespaceLabel = "opendatahub.io/generated-namespace"
 )
 
@@ -66,7 +66,7 @@ func OperatorUninstall(cli client.Client, cfg *rest.Config) error {
 	}
 	if err := cli.List(context.TODO(), generatedNamespaces, nsOptions...); err != nil {
 		if !apierrs.IsNotFound(err) {
-			return fmt.Errorf("error getting generated namespaces : %v", err)
+			return fmt.Errorf("error getting generated namespaces : %w", err)
 		}
 	}
 
@@ -81,9 +81,10 @@ func OperatorUninstall(cli client.Client, cfg *rest.Config) error {
 
 	// Delete all the active namespaces
 	for _, namespace := range generatedNamespaces.Items {
+		namespace := namespace // fix gosec error
 		if namespace.Status.Phase == corev1.NamespaceActive {
 			if err := cli.Delete(context.TODO(), &namespace, []client.DeleteOption{}...); err != nil {
-				return fmt.Errorf("error deleting namespace %v: %v", namespace.Name, err)
+				return fmt.Errorf("error deleting namespace %v: %w", namespace.Name, err)
 			}
 			fmt.Printf("Namespace %s deleted as a part of uninstall.", namespace.Name)
 		}
@@ -106,6 +107,7 @@ func removeDSCInitialization(cli client.Client) error {
 
 	if len(instanceList.Items) != 0 {
 		for _, dsciInstance := range instanceList.Items {
+			dsciInstance := dsciInstance // fix gosec error
 			err = cli.Delete(context.TODO(), &dsciInstance)
 			if apierrs.IsNotFound(err) {
 				err = nil
@@ -184,19 +186,19 @@ func CreateDefaultDSC(cli client.Client, platform deploy.Platform) error {
 			fmt.Printf("DataScienceCluster resource already exists in Managed. Updating it.")
 			data, err := json.Marshal(releaseDataScienceCluster)
 			if err != nil {
-				return fmt.Errorf("failed to get DataScienceCluster custom resource data: %v", err)
+				return fmt.Errorf("failed to get DataScienceCluster custom resource data: %w", err)
 			}
 			err = cli.Patch(context.TODO(), releaseDataScienceCluster, client.RawPatch(types.ApplyPatchType, data),
 				client.ForceOwnership, client.FieldOwner("opendatahub-operator"))
 			if err != nil {
-				return fmt.Errorf("failed to update DataScienceCluster custom resource:%v", err)
+				return fmt.Errorf("failed to update DataScienceCluster custom resource:%w", err)
 			}
 		} else {
 			fmt.Printf("DataScienceCluster resource already exists. It will not be updated with default DSC.")
 			return nil
 		}
 	default:
-		return fmt.Errorf("failed to create DataScienceCluster custom resource: %v", err)
+		return fmt.Errorf("failed to create DataScienceCluster custom resource: %w", err)
 	}
 	return nil
 }
@@ -243,7 +245,7 @@ func GetOperatorNamespace() (string, error) {
 	return "", err
 }
 
-func RemoveKfDefInstances(cli client.Client, platform deploy.Platform) error {
+func RemoveKfDefInstances(cli client.Client, _ deploy.Platform) error {
 	// Check if kfdef are deployed
 	expectedKfDefList, err := getKfDefInstances(cli)
 	if err != nil {
@@ -252,16 +254,17 @@ func RemoveKfDefInstances(cli client.Client, platform deploy.Platform) error {
 	// Delete kfdefs
 	if len(expectedKfDefList.Items) > 0 {
 		for _, kfdef := range expectedKfDefList.Items {
+			kfdef := kfdef // fix gosec error
 			// Remove finalizer
 			updatedKfDef := &kfdef
 			updatedKfDef.Finalizers = []string{}
 			err = cli.Update(context.TODO(), updatedKfDef)
 			if err != nil {
-				return fmt.Errorf("error removing finalizers from kfdef %v : %v", kfdef.Name, err)
+				return fmt.Errorf("error removing finalizers from kfdef %v : %w", kfdef.Name, err)
 			}
 			err = cli.Delete(context.TODO(), updatedKfDef)
 			if err != nil {
-				return fmt.Errorf("error deleting kfdef %v : %v", kfdef.Name, err)
+				return fmt.Errorf("error deleting kfdef %v : %w", kfdef.Name, err)
 			}
 		}
 	}
@@ -288,7 +291,7 @@ func removeCsv(c client.Client, r *rest.Config) error {
 			if apierrs.IsNotFound(err) {
 				return nil
 			}
-			return fmt.Errorf("error deleting clusterserviceversion: %v", err)
+			return fmt.Errorf("error deleting clusterserviceversion: %w", err)
 		}
 		fmt.Printf("Clusterserviceversion %s deleted as a part of uninstall.", operatorCsv.Name)
 	}
@@ -300,7 +303,7 @@ func removeCsv(c client.Client, r *rest.Config) error {
 func getClusterServiceVersion(cfg *rest.Config, watchNameSpace string) (*ofapi.ClusterServiceVersion, error) {
 	operatorClient, err := olmclientset.NewForConfig(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("error getting operator client %v", err)
+		return nil, fmt.Errorf("error getting operator client %w", err)
 	}
 	csvs, err := operatorClient.ClusterServiceVersions(watchNameSpace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
