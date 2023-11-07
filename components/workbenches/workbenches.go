@@ -33,6 +33,8 @@ var _ components.ComponentInterface = (*Workbenches)(nil)
 // +kubebuilder:object:generate=true
 type Workbenches struct {
 	components.Component `json:""`
+	OdhNbController      components.ControllerImage `json:"notebookController,omitempty"`
+	KfNbController       components.ControllerImage `json:"kfNotebookController,omitempty"`
 }
 
 func (w *Workbenches) OverrideManifests(platform string) error {
@@ -99,7 +101,7 @@ func (w *Workbenches) ReconcileComponent(cli client.Client, owner metav1.Object,
 		"odh-notebook-controller-image":    "RELATED_IMAGE_ODH_NOTEBOOK_CONTROLLER_IMAGE",
 		"odh-kf-notebook-controller-image": "RELATED_IMAGE_ODH_KF_NOTEBOOK_CONTROLLER_IMAGE",
 	}
-
+	w.replaceImageValues(imageParamMap)
 	// Set default notebooks namespace
 	// Create rhods-notebooks namespace in managed platforms
 	enabled := w.GetManagementState() == operatorv1.Managed
@@ -184,4 +186,13 @@ func (w *Workbenches) ReconcileComponent(cli client.Client, owner metav1.Object,
 	}
 
 	return nil
+}
+
+func (w *Workbenches) replaceImageValues(imageParamMap map[string]string) {
+	if w.OdhNbController.Image != "" {
+		imageParamMap["odh-notebook-controller-image"] = w.OdhNbController.Image
+	}
+	if w.KfNbController.Image != "" {
+		imageParamMap["odh-kf-notebook-controller-image"] = w.KfNbController.Image
+	}
 }

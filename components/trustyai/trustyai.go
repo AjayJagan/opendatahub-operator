@@ -25,6 +25,8 @@ var _ components.ComponentInterface = (*TrustyAI)(nil)
 // +kubebuilder:object:generate=true
 type TrustyAI struct {
 	components.Component `json:""`
+	TrustyAIService      components.ControllerImage `json:"trustyAIService,omitempty"`
+	TrustyAIOperator     components.ControllerImage `json:"trustyAIOperator,omitempty"`
 }
 
 func (t *TrustyAI) OverrideManifests(_ string) error {
@@ -54,6 +56,7 @@ func (t *TrustyAI) ReconcileComponent(cli client.Client, owner metav1.Object, ds
 		"trustyaiServiceImage":  "RELATED_IMAGE_ODH_TRUSTYAI_SERVICE_IMAGE",
 		"trustyaiOperatorImage": "RELATED_IMAGE_ODH_TRUSTYAI_SERVICE_OPERATOR_IMAGE",
 	}
+	t.replaceImageValues(imageParamMap)
 	enabled := t.GetManagementState() == operatorv1.Managed
 
 	platform, err := deploy.GetPlatform(cli)
@@ -77,4 +80,13 @@ func (t *TrustyAI) ReconcileComponent(cli client.Client, owner metav1.Object, ds
 	err = deploy.DeployManifestsFromPath(cli, owner, Path, dscispec.ApplicationsNamespace, t.GetComponentName(), enabled)
 
 	return err
+}
+
+func (t *TrustyAI) replaceImageValues(imageParamMap map[string]string) {
+	if t.TrustyAIService.Image != "" {
+		imageParamMap["trustyaiServiceImage"] = t.TrustyAIService.Image
+	}
+	if t.TrustyAIOperator.Image != "" {
+		imageParamMap["trustyaiOperatorImage"] = t.TrustyAIOperator.Image
+	}
 }

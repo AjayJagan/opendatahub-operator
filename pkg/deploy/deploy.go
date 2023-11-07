@@ -335,9 +335,13 @@ func ApplyParams(componentPath string, imageParamsMap map[string]string, isUpdat
 	// Update images with env variables
 	// e.g "odh-kuberay-operator-controller-image": "RELATED_IMAGE_ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE",
 	for i := range envMap {
-		relatedImageValue := os.Getenv(imageParamsMap[i])
-		if relatedImageValue != "" {
-			envMap[i] = relatedImageValue
+		if strings.HasPrefix(imageParamsMap[i], "RELATED_IMAGE") {
+			relatedImageValue := os.Getenv(imageParamsMap[i])
+			if relatedImageValue != "" {
+				envMap[i] = relatedImageValue
+			}
+		} else {
+			envMap[i] = imageParamsMap[i]
 		}
 	}
 

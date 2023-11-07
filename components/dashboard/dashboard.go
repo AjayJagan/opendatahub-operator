@@ -45,6 +45,7 @@ var _ components.ComponentInterface = (*Dashboard)(nil)
 // +kubebuilder:object:generate=true
 type Dashboard struct {
 	components.Component `json:""`
+	Dashboard            components.ControllerImage `json:"dashboard,omitempty"`
 }
 
 func (d *Dashboard) OverrideManifests(platform string) error {
@@ -82,6 +83,7 @@ func (d *Dashboard) ReconcileComponent(cli client.Client, owner metav1.Object, d
 	var imageParamMap = map[string]string{
 		"odh-dashboard-image": "RELATED_IMAGE_ODH_DASHBOARD_IMAGE",
 	}
+	d.replaceImageValues(imageParamMap)
 	enabled := d.GetManagementState() == operatorv1.Managed
 	monitoringEnabled := dscispec.Monitoring.ManagementState == operatorv1.Managed
 
@@ -286,4 +288,10 @@ func (d *Dashboard) cleanOauthClientSecrets(cli client.Client, dscispec *dsciv1.
 		}
 	}
 	return nil
+}
+
+func (d *Dashboard) replaceImageValues(imageParamMap map[string]string) {
+	if d.Dashboard.Image != "" {
+		imageParamMap["odh-dashboard-image"] = d.Dashboard.Image
+	}
 }

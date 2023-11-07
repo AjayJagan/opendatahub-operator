@@ -29,6 +29,7 @@ var _ components.ComponentInterface = (*CodeFlare)(nil)
 // +kubebuilder:object:generate=true
 type CodeFlare struct {
 	components.Component `json:""`
+	CodeFlareController  components.ControllerImage `json:"codeflare,omitempty"`
 }
 
 func (c *CodeFlare) OverrideManifests(_ string) error {
@@ -58,6 +59,7 @@ func (c *CodeFlare) ReconcileComponent(cli client.Client, owner metav1.Object, d
 		"odh-codeflare-operator-controller-image": "RELATED_IMAGE_ODH_CODEFLARE_OPERATOR_IMAGE", // no need mcad, embedded in cfo
 		"namespace": dscispec.ApplicationsNamespace,
 	}
+	c.replaceImageValues(imageParamMap)
 	enabled := c.GetManagementState() == operatorv1.Managed
 	monitoringEnabled := dscispec.Monitoring.ManagementState == operatorv1.Managed
 	platform, err := deploy.GetPlatform(cli)
@@ -115,4 +117,10 @@ func (c *CodeFlare) ReconcileComponent(cli client.Client, owner metav1.Object, d
 	}
 
 	return nil
+}
+
+func (c *CodeFlare) replaceImageValues(imageParamMap map[string]string) {
+	if c.CodeFlareController.Image != "" {
+		imageParamMap["odh-codeflare-operator-controller-image"] = c.CodeFlareController.Image
+	}
 }

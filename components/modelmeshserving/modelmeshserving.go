@@ -29,6 +29,11 @@ var _ components.ComponentInterface = (*ModelMeshServing)(nil)
 // +kubebuilder:object:generate=true
 type ModelMeshServing struct {
 	components.Component `json:""`
+	RestProxy            components.ControllerImage `json:"restProxy,omitempty"`
+	RuntimeAdapter       components.ControllerImage `json:"runtimeAdapter,omitempty"`
+	ModelMesh            components.ControllerImage `json:"modelMesh,omitempty"`
+	ModelMeshController  components.ControllerImage `json:"modelMeshController,omitempty"`
+	ModelController      components.ControllerImage `json:"modelController,omitempty"`
 }
 
 func (m *ModelMeshServing) OverrideManifests(_ string) error {
@@ -81,7 +86,7 @@ func (m *ModelMeshServing) ReconcileComponent(cli client.Client, owner metav1.Ob
 	var dependentImageParamMap = map[string]string{
 		"odh-model-controller": "RELATED_IMAGE_ODH_MODEL_CONTROLLER_IMAGE",
 	}
-
+	m.replaceImageValues(imageParamMap, dependentImageParamMap)
 	enabled := m.GetManagementState() == operatorv1.Managed
 	monitoringEnabled := dscispec.Monitoring.ManagementState == operatorv1.Managed
 	platform, err := deploy.GetPlatform(cli)
@@ -156,4 +161,23 @@ func (m *ModelMeshServing) ReconcileComponent(cli client.Client, owner metav1.Ob
 	}
 
 	return nil
+}
+
+func (m *ModelMeshServing) replaceImageValues(imageParamMap map[string]string, dependentImageParamMap map[string]string) {
+	if m.RestProxy.Image != "" {
+		imageParamMap["odh-mm-rest-proxy"] = m.RestProxy.Image
+	}
+	if m.RuntimeAdapter.Image != "" {
+		imageParamMap["odh-modelmesh-runtime-adapter"] = m.RuntimeAdapter.Image
+	}
+	if m.ModelMesh.Image != "" {
+		imageParamMap["odh-modelmesh"] = m.ModelMesh.Image
+	}
+	if m.ModelMeshController.Image != "" {
+		imageParamMap["odh-modelmesh-controller"] = m.ModelMeshController.Image
+	}
+	if m.ModelController.Image != "" {
+		imageParamMap["odh-model-controller"] = m.ModelController.Image
+		dependentImageParamMap["odh-model-controller"] = m.ModelController.Image
+	}
 }

@@ -25,7 +25,13 @@ var _ components.ComponentInterface = (*DataSciencePipelines)(nil)
 // DataSciencePipelines struct holds the configuration for the DataSciencePipelines component.
 // +kubebuilder:object:generate=true
 type DataSciencePipelines struct {
-	components.Component `json:""`
+	components.Component  `json:""`
+	APIServer             components.ControllerImage `json:"apiServer,omitempty"`
+	ArtifactManager       components.ControllerImage `json:"artifactManager,omitempty"`
+	PersistanceAgent      components.ControllerImage `json:"persistantAgent,omitempty"`
+	ScheduledWorkflow     components.ControllerImage `json:"scheduledWorkflow,omitempty"`
+	Cache                 components.ControllerImage `json:"cache,omitempty"`
+	DSPOperatorController components.ControllerImage `json:"dspo,omitempty"`
 }
 
 func (d *DataSciencePipelines) OverrideManifests(_ string) error {
@@ -59,7 +65,7 @@ func (d *DataSciencePipelines) ReconcileComponent(cli client.Client, owner metav
 		"IMAGES_CACHE":             "RELATED_IMAGE_ODH_ML_PIPELINES_CACHE_IMAGE",
 		"IMAGES_DSPO":              "RELATED_IMAGE_ODH_DATA_SCIENCE_PIPELINES_OPERATOR_CONTROLLER_IMAGE",
 	}
-
+	d.replaceImageValues(imageParamMap)
 	enabled := d.GetManagementState() == operatorv1.Managed
 	monitoringEnabled := dscispec.Monitoring.ManagementState == operatorv1.Managed
 
@@ -100,4 +106,25 @@ func (d *DataSciencePipelines) ReconcileComponent(cli client.Client, owner metav
 	}
 
 	return nil
+}
+
+func (d *DataSciencePipelines) replaceImageValues(imageParamMap map[string]string) {
+	if d.APIServer.Image != "" {
+		imageParamMap["IMAGES_APISERVER"] = d.APIServer.Image
+	}
+	if d.ArtifactManager.Image != "" {
+		imageParamMap["IMAGES_ARTIFACT"] = d.ArtifactManager.Image
+	}
+	if d.PersistanceAgent.Image != "" {
+		imageParamMap["IMAGES_PERSISTENTAGENT"] = d.PersistanceAgent.Image
+	}
+	if d.ScheduledWorkflow.Image != "" {
+		imageParamMap["IMAGES_SCHEDULEDWORKFLOW"] = d.ScheduledWorkflow.Image
+	}
+	if d.Cache.Image != "" {
+		imageParamMap["IMAGES_CACHE"] = d.Cache.Image
+	}
+	if d.DSPOperatorController.Image != "" {
+		imageParamMap["IMAGES_DSPO"] = d.DSPOperatorController.Image
+	}
 }

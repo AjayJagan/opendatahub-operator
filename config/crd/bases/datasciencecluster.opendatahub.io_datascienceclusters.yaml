@@ -46,6 +46,11 @@ spec:
                       has been installed in the cluster, it should be uninstalled
                       first before enabled component.
                     properties:
+                      codeflare:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                       devFlags:
                         description: Add developer fields
                         properties:
@@ -89,6 +94,11 @@ spec:
                   dashboard:
                     description: Dashboard component configuration.
                     properties:
+                      dashboard:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                       devFlags:
                         description: Add developer fields
                         properties:
@@ -133,6 +143,21 @@ spec:
                     description: DataServicePipeline component configuration. Require
                       OpenShift Pipelines Operator to be installed before enable component
                     properties:
+                      apiServer:
+                        properties:
+                          image:
+                            type: string
+                        type: object
+                      artifactManager:
+                        properties:
+                          image:
+                            type: string
+                        type: object
+                      cache:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                       devFlags:
                         description: Add developer fields
                         properties:
@@ -160,6 +185,11 @@ spec:
                               type: object
                             type: array
                         type: object
+                      dspo:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                       managementState:
                         description: "Set to one of the following values: \n - \"Managed\"
                           : the operator is actively managing the component and trying
@@ -172,6 +202,16 @@ spec:
                         - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
+                      persistantAgent:
+                        properties:
+                          image:
+                            type: string
+                        type: object
+                      scheduledWorkflow:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                     type: object
                   kserve:
                     description: Kserve component configuration. Require OpenShift
@@ -218,6 +258,11 @@ spec:
                         - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
+                      modelController:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                       serving:
                         description: Serving configures the KNative-Serving stack
                           used for model serving. A Service Mesh (Istio) is prerequisite,
@@ -321,6 +366,31 @@ spec:
                         - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
+                      modelController:
+                        properties:
+                          image:
+                            type: string
+                        type: object
+                      modelMesh:
+                        properties:
+                          image:
+                            type: string
+                        type: object
+                      modelMeshController:
+                        properties:
+                          image:
+                            type: string
+                        type: object
+                      restProxy:
+                        properties:
+                          image:
+                            type: string
+                        type: object
+                      runtimeAdapter:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                     type: object
                   ray:
                     description: Ray component configuration.
@@ -364,6 +434,11 @@ spec:
                         - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
+                      ray:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                     type: object
                   trustyai:
                     description: TrustyAI component configuration.
@@ -407,6 +482,16 @@ spec:
                         - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
+                      trustyAIOperator:
+                        properties:
+                          image:
+                            type: string
+                        type: object
+                      trustyAIService:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                     type: object
                   workbenches:
                     description: Workbenches component configuration.
@@ -438,6 +523,11 @@ spec:
                               type: object
                             type: array
                         type: object
+                      kfNotebookController:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                       managementState:
                         description: "Set to one of the following values: \n - \"Managed\"
                           : the operator is actively managing the component and trying
@@ -450,6 +540,11 @@ spec:
                         - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
+                      notebookController:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                     type: object
                 type: object
             type: object

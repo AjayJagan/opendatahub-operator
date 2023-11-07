@@ -25,7 +25,8 @@ var _ components.ComponentInterface = (*Ray)(nil)
 // Ray struct holds the configuration for the Ray component.
 // +kubebuilder:object:generate=true
 type Ray struct {
-	components.Component `json:""`
+	components.Component      `json:""`
+	KubeRayOperatorController components.ControllerImage `json:"ray,omitempty"`
 }
 
 func (r *Ray) OverrideManifests(_ string) error {
@@ -55,7 +56,7 @@ func (r *Ray) ReconcileComponent(cli client.Client, owner metav1.Object, dscispe
 		"odh-kuberay-operator-controller-image": "RELATED_IMAGE_ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE",
 		"namespace":                             dscispec.ApplicationsNamespace,
 	}
-
+	r.replaceImageValues(imageParamMap)
 	enabled := r.GetManagementState() == operatorv1.Managed
 	monitoringEnabled := dscispec.Monitoring.ManagementState == operatorv1.Managed
 	platform, err := deploy.GetPlatform(cli)
@@ -93,4 +94,10 @@ func (r *Ray) ReconcileComponent(cli client.Client, owner metav1.Object, dscispe
 	}
 
 	return nil
+}
+
+func (r *Ray) replaceImageValues(imageParamMap map[string]string) {
+	if r.KubeRayOperatorController.Image != "" {
+		imageParamMap["odh-kuberay-operator-controller-image"] = r.KubeRayOperatorController.Image
+	}
 }

@@ -37,7 +37,8 @@ type Kserve struct {
 	components.Component `json:""`
 	// Serving configures the KNative-Serving stack used for model serving. A Service
 	// Mesh (Istio) is prerequisite, since it is used as networking layer.
-	Serving infrav1.ServingSpec `json:"serving,omitempty"`
+	Serving         infrav1.ServingSpec        `json:"serving,omitempty"`
+	ModelController components.ControllerImage `json:"modelController,omitempty"`
 }
 
 func (k *Kserve) OverrideManifests(_ string) error {
@@ -88,7 +89,7 @@ func (k *Kserve) ReconcileComponent(cli client.Client, owner metav1.Object, dsci
 	var dependentParamMap = map[string]string{
 		"odh-model-controller": "RELATED_IMAGE_ODH_MODEL_CONTROLLER_IMAGE",
 	}
-
+	k.replaceImageValues(dependentParamMap)
 	enabled := k.GetManagementState() == operatorv1.Managed
 	platform, err := deploy.GetPlatform(cli)
 	if err != nil {
@@ -205,4 +206,10 @@ func checkRequiredOperatorsInstalled(cli client.Client) error {
 	checkAndAppendError(ServerlessOperator)
 
 	return multiErr.ErrorOrNil()
+}
+
+func (k *Kserve) replaceImageValues(dependentParamMap map[string]string) {
+	if k.ModelController.Image != "" {
+		dependentParamMap["odh-model-controller"] = k.ModelController.Image
+	}
 }

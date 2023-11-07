@@ -77,6 +77,9 @@ type ManifestsConfig struct {
 	SourcePath string `json:"sourcePath,omitempty"`
 }
 
+type ControllerImage struct {
+	Image string `json:"image,omitempty"`
+}
 type ComponentInterface interface {
 	ReconcileComponent(cli client.Client, owner metav1.Object, DSCISpec *dsciv1.DSCInitializationSpec, currentComponentStatus bool) error
 	Cleanup(cli client.Client, DSCISpec *dsciv1.DSCInitializationSpec) error
