@@ -94,6 +94,10 @@ func (w *Workbenches) GetComponentName() string {
 	return ComponentName
 }
 
+func (*Workbenches) GetPathMap() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
 func (w *Workbenches) ReconcileComponent(cli client.Client, owner metav1.Object, dscispec *dsci.DSCInitializationSpec, _ bool) error {
 	var imageParamMap = map[string]string{
 		"odh-notebook-controller-image":    "RELATED_IMAGE_ODH_NOTEBOOK_CONTROLLER_IMAGE",

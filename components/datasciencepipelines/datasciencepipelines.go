@@ -26,6 +26,12 @@ var _ components.ComponentInterface = (*DataSciencePipelines)(nil)
 // +kubebuilder:object:generate=true
 type DataSciencePipelines struct {
 	components.Component `json:""`
+	APIServer            components.ControllerImage `json:"apiServer,omitempty"`
+	ArtifactManager      components.ControllerImage `json:"artifactManager,omitempty"`
+	PersistantAgent      components.ControllerImage `json:"persistantAgent,omitempty"`
+	ScheduledWorkflow    components.ControllerImage `json:"scheduledWorkflow,omitempty"`
+	Cache                components.ControllerImage `json:"cache,omitempty"`
+	Dspo                 components.ControllerImage `json:"dspo,omitempty"`
 }
 
 func (d *DataSciencePipelines) OverrideManifests(_ string) error {
@@ -48,6 +54,13 @@ func (d *DataSciencePipelines) OverrideManifests(_ string) error {
 
 func (d *DataSciencePipelines) GetComponentName() string {
 	return ComponentName
+}
+
+func (d *DataSciencePipelines) GetPathMap() map[string]interface{} {
+	pm := make(map[string]interface{})
+	if d.APIServer.Image != "" {
+	}
+	return pm
 }
 
 func (d *DataSciencePipelines) ReconcileComponent(cli client.Client, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec, _ bool) error {

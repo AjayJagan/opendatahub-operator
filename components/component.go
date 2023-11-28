@@ -85,6 +85,10 @@ type ManifestsConfig struct {
 	SourcePath string `json:"sourcePath,omitempty"`
 }
 
+type ControllerImage struct {
+	Image string `json:"image,omitempty"`
+}
+
 type ComponentInterface interface {
 	ReconcileComponent(cli client.Client, owner metav1.Object, DSCISpec *dsciv1.DSCInitializationSpec, currentComponentStatus bool) error
 	Cleanup(cli client.Client, DSCISpec *dsciv1.DSCInitializationSpec) error
@@ -94,6 +98,7 @@ type ComponentInterface interface {
 	OverrideManifests(platform string) error
 	UpdatePrometheusConfig(cli client.Client, enable bool, component string) error
 	GetReplicas() *int
+	GetPathMap() map[string]interface{}
 }
 
 // UpdatePrometheusConfig update prometheus-configs.yaml to include/exclude <component>.rules

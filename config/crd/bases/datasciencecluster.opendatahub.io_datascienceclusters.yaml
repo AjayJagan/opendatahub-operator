@@ -92,6 +92,11 @@ spec:
                   dashboard:
                     description: Dashboard component configuration.
                     properties:
+                      dashboard:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                       devFlags:
                         description: Add developer fields
                         properties:
@@ -428,6 +433,16 @@ spec:
                       replicas:
                         description: Override replica count for component
                         type: integer
+                      trustyAIOperator:
+                        properties:
+                          image:
+                            type: string
+                        type: object
+                      trustyAIService:
+                        properties:
+                          image:
+                            type: string
+                        type: object
                     type: object
                   workbenches:
                     description: Workbenches component configuration.

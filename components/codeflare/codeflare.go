@@ -29,6 +29,7 @@ var _ components.ComponentInterface = (*CodeFlare)(nil)
 // +kubebuilder:object:generate=true
 type CodeFlare struct {
 	components.Component `json:""`
+	CodeFlareOperator    components.ControllerImage `json:"codeflareOperator,omitempty"`
 }
 
 func (c *CodeFlare) OverrideManifests(_ string) error {
@@ -51,6 +52,14 @@ func (c *CodeFlare) OverrideManifests(_ string) error {
 
 func (c *CodeFlare) GetComponentName() string {
 	return ComponentName
+}
+
+func (c *CodeFlare) GetPathMap() map[string]interface{} {
+	pm := make(map[string]interface{})
+	if c.CodeFlareOperator.Image != "" {
+		pm["/spec/template/spec/containers/0/image"] = c.CodeFlareOperator.Image
+	}
+	return pm
 }
 
 func (c *CodeFlare) ReconcileComponent(cli client.Client, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec, _ bool) error {

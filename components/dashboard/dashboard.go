@@ -45,6 +45,8 @@ var _ components.ComponentInterface = (*Dashboard)(nil)
 // +kubebuilder:object:generate=true
 type Dashboard struct {
 	components.Component `json:""`
+	// +optional
+	OdhDashboard components.ControllerImage `json:"odhDashboard,omitempty"`
 }
 
 func (d *Dashboard) OverrideManifests(platform string) error {
@@ -75,6 +77,15 @@ func (d *Dashboard) OverrideManifests(platform string) error {
 
 func (d *Dashboard) GetComponentName() string {
 	return ComponentName
+}
+
+func (d *Dashboard) GetPathMap() map[string]interface{} {
+	fmt.Printf("!!!!!!!!!!!!!!!!!!!! %s", d.OdhDashboard.Image)
+	pm := make(map[string]interface{}, 0)
+	if d.OdhDashboard.Image != "" {
+		pm["/spec/template/spec/containers/0/image"] = d.OdhDashboard.Image
+	}
+	return pm
 }
 
 //nolint:gocyclo

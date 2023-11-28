@@ -80,6 +80,10 @@ func (k *Kserve) GetComponentName() string {
 	return ComponentName
 }
 
+func (*Kserve) GetPathMap() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
 func (k *Kserve) ReconcileComponent(cli client.Client, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec, _ bool) error {
 	// paramMap for Kserve to use.
 	var imageParamMap = map[string]string{}

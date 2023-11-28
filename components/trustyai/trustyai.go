@@ -25,6 +25,8 @@ var _ components.ComponentInterface = (*TrustyAI)(nil)
 // +kubebuilder:object:generate=true
 type TrustyAI struct {
 	components.Component `json:""`
+	TrustyAIService      components.ControllerImage `json:"trustyAIService,omitempty"`
+	TrustyAIOperator     components.ControllerImage `json:"trustyAIOperator,omitempty"`
 }
 
 func (t *TrustyAI) OverrideManifests(_ string) error {
@@ -47,6 +49,18 @@ func (t *TrustyAI) OverrideManifests(_ string) error {
 
 func (t *TrustyAI) GetComponentName() string {
 	return ComponentName
+}
+
+func (t *TrustyAI) GetPathMap() map[string]interface{} {
+	// pm := make(map[string]interface{})
+	// if t.TrustyAIService.Image != "" {
+	// 	pm["/path/to/image"] = t.TrustyAIService.Image
+	// }
+	// if t.TrustyAIOperator.Image != "" {
+	// 	pm["/path/to/image"] = t.TrustyAIOperator.Image
+	// }
+	// return pm
+	return map[string]interface{}{}
 }
 
 func (t *TrustyAI) ReconcileComponent(cli client.Client, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec, _ bool) error {
