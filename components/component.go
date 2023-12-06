@@ -86,6 +86,8 @@ type ManifestsConfig struct {
 }
 
 type ControllerImage struct {
+	// Image name with tag separated by ':'
+	// +optional
 	Image string `json:"image,omitempty"`
 }
 
@@ -98,7 +100,7 @@ type ComponentInterface interface {
 	OverrideManifests(platform string) error
 	UpdatePrometheusConfig(cli client.Client, enable bool, component string) error
 	GetReplicas() *int
-	GetPathMap() map[string]interface{}
+	GetPathMap(envArray []string) map[string]interface{}
 }
 
 // UpdatePrometheusConfig update prometheus-configs.yaml to include/exclude <component>.rules

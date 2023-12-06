@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/kustomize/api/resmap"
 	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/resid"
+	"sigs.k8s.io/kustomize/kyaml/yaml"
 
 	"github.com/opendatahub-io/opendatahub-operator/v2/components"
 )
@@ -25,11 +26,63 @@ func transformDeployment(componentName string, patch string, resMap resmap.ResMa
 		},
 		JsonOp: patch,
 	}
-
 	if err := plug.Transform(resMap); err != nil {
 		return err
 	}
 	return nil
+}
+
+func getEnvArrayPerContainer(c *yaml.RNode) ([]string, error) {
+	envKeyStr := make([]string, 0)
+	env, err := c.Pipe(yaml.Lookup("env"))
+	if err != nil {
+		return nil, err
+	}
+
+	if env == nil {
+		return nil, nil
+	}
+	for _, e := range env.Content() {
+		mapStr, err := yaml.Marshal(e)
+		if err != nil {
+			return nil, err
+		}
+		envKeyStr = append(envKeyStr, strings.TrimSpace(strings.Split(strings.Split(string(mapStr), "\n")[0], ":")[1]))
+	}
+	return envKeyStr, nil
+}
+
+func getEnvArray(resMap resmap.ResMap) []string {
+	var envArr []string
+	for _, r := range resMap.Resources() {
+		meta, err := r.GetMeta()
+		if err != nil {
+			continue
+		}
+
+		if meta.TypeMeta.Kind != "Deployment" {
+			continue
+		}
+
+		containersNode, err := r.Pipe(
+			yaml.Lookup("spec", "template", "spec", "containers"))
+		if err != nil {
+			continue
+		}
+
+		containers, err := containersNode.Elements()
+		if err != nil {
+			continue
+		}
+		for _, c := range containers {
+			arr, err := getEnvArrayPerContainer(c)
+			if err != nil {
+				fmt.Printf("Error marshalling env in yaml: %v\n", err)
+			}
+			envArr = append(envArr, arr...)
+		}
+	}
+	return envArr
 }
 
 func createMultiPatches(values map[string]interface{}) string {
@@ -68,7 +121,8 @@ func AdjustReplicas(componentName string, resMap resmap.ResMap, c components.Com
 }
 
 func UpdateImages(componentName string, resMap resmap.ResMap, c components.ComponentInterface) error {
-	patch := createMultiPatches(c.GetPathMap())
+	envArr := getEnvArray(resMap)
+	patch := createMultiPatches(c.GetPathMap(envArr))
 	if len(patch) > 0 {
 		if err := transformDeployment(componentName, patch, resMap); err != nil {
 			return err

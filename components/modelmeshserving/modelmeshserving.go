@@ -29,6 +29,11 @@ var _ components.ComponentInterface = (*ModelMeshServing)(nil)
 // +kubebuilder:object:generate=true
 type ModelMeshServing struct {
 	components.Component `json:""`
+	RestProxy            components.ControllerImage `json:"restProxy,omitempty"`
+	RuntimeAdapter       components.ControllerImage `json:"runtimeAdapter,omitempty"`
+	ModelMesh            components.ControllerImage `json:"modelMesh,omitempty"`
+	ModelMeshController  components.ControllerImage `json:"modelMeshController,omitempty"`
+	ModelController      components.ControllerImage `json:"modelController,omitempty"`
 }
 
 func (m *ModelMeshServing) OverrideManifests(_ string) error {
@@ -68,8 +73,12 @@ func (m *ModelMeshServing) GetComponentName() string {
 	return ComponentName
 }
 
-func (*ModelMeshServing) GetPathMap() map[string]interface{} {
-	return map[string]interface{}{}
+func (m *ModelMeshServing) GetPathMap(envArray []string) map[string]interface{} {
+	pm := make(map[string]interface{})
+	if m.ModelMeshController.Image != "" {
+
+	}
+	return pm
 }
 
 func (m *ModelMeshServing) ReconcileComponent(cli client.Client, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec, _ bool) error {

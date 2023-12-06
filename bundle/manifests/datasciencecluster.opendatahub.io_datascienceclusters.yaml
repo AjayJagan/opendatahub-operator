@@ -45,6 +45,12 @@ spec:
                       has been installed in the cluster, it should be uninstalled
                       first before enabled component.
                     properties:
+                      codeflareOperator:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
                       devFlags:
                         description: Add developer fields
                         properties:
@@ -118,6 +124,9 @@ spec:
                               type: object
                             type: array
                         type: object
+                      image:
+                        description: Image name with tag separated by ':'
+                        type: string
                       managementState:
                         description: "Set to one of the following values: \n - \"Managed\"
                           : the operator is actively managing the component and trying
@@ -138,6 +147,24 @@ spec:
                     description: DataServicePipeline component configuration. Require
                       OpenShift Pipelines Operator to be installed before enable component
                     properties:
+                      apiServer:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
+                      artifactManager:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
+                      cache:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
                       devFlags:
                         description: Add developer fields
                         properties:
@@ -165,6 +192,12 @@ spec:
                               type: object
                             type: array
                         type: object
+                      dspo:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
                       managementState:
                         description: "Set to one of the following values: \n - \"Managed\"
                           : the operator is actively managing the component and trying
@@ -177,9 +210,21 @@ spec:
                         - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
+                      persistantAgent:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
                       replicas:
                         description: Override replica count for component
                         type: integer
+                      scheduledWorkflow:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
                     type: object
                   kserve:
                     description: Kserve component configuration. Require OpenShift
@@ -427,6 +472,18 @@ spec:
                       replicas:
                         description: Override replica count for component
                         type: integer
+                      trustyAIOperator:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
+                      trustyAIService:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
                     type: object
                   workbenches:
                     description: Workbenches component configuration.

@@ -3,6 +3,7 @@
 package datasciencepipelines
 
 import (
+	"fmt"
 	"path/filepath"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
@@ -11,6 +12,7 @@ import (
 
 	dsciv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/components"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/common"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/deploy"
 )
 
@@ -56,9 +58,41 @@ func (d *DataSciencePipelines) GetComponentName() string {
 	return ComponentName
 }
 
-func (d *DataSciencePipelines) GetPathMap() map[string]interface{} {
+func (d *DataSciencePipelines) GetPathMap(envArray []string) map[string]interface{} {
 	pm := make(map[string]interface{})
+	var idx int
+	if d.Dspo.Image != "" {
+		pm["/spec/template/spec/containers/0/image"] = d.Dspo.Image
+	}
 	if d.APIServer.Image != "" {
+		idx = common.IndexOf(envArray, "IMAGES_APISERVER")
+		if idx != -1 {
+			pm[fmt.Sprintf("/spec/template/spec/containers/0/env/%d", idx)] = d.APIServer.Image
+		}
+	}
+	if d.ArtifactManager.Image != "" {
+		idx = common.IndexOf(envArray, "IMAGES_ARTIFACT")
+		if idx != -1 {
+			pm[fmt.Sprintf("/spec/template/spec/containers/0/env/%d", idx)] = d.ArtifactManager.Image
+		}
+	}
+	if d.PersistantAgent.Image != "" {
+		idx = common.IndexOf(envArray, "IMAGES_PERSISTENTAGENT")
+		if idx != -1 {
+			pm[fmt.Sprintf("/spec/template/spec/containers/0/env/%d", idx)] = d.PersistantAgent.Image
+		}
+	}
+	if d.ScheduledWorkflow.Image != "" {
+		idx = common.IndexOf(envArray, "IMAGES_SCHEDULEDWORKFLOW")
+		if idx != -1 {
+			pm[fmt.Sprintf("/spec/template/spec/containers/0/env/%d", idx)] = d.ScheduledWorkflow.Image
+		}
+	}
+	if d.Cache.Image != "" {
+		idx = common.IndexOf(envArray, "IMAGES_CACHE")
+		if idx != -1 {
+			pm[fmt.Sprintf("/spec/template/spec/containers/0/env/%d", idx)] = d.Cache.Image
+		}
 	}
 	return pm
 }

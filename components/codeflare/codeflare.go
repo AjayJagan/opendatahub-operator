@@ -54,7 +54,7 @@ func (c *CodeFlare) GetComponentName() string {
 	return ComponentName
 }
 
-func (c *CodeFlare) GetPathMap() map[string]interface{} {
+func (c *CodeFlare) GetPathMap(envArray []string) map[string]interface{} {
 	pm := make(map[string]interface{})
 	if c.CodeFlareOperator.Image != "" {
 		pm["/spec/template/spec/containers/0/image"] = c.CodeFlareOperator.Image

@@ -46,6 +46,12 @@ spec:
                       has been installed in the cluster, it should be uninstalled
                       first before enabled component.
                     properties:
+                      codeflareOperator:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
                       devFlags:
                         description: Add developer fields
                         properties:
@@ -92,9 +98,72 @@ spec:
                   dashboard:
                     description: Dashboard component configuration.
                     properties:
-                      dashboard:
+                      devFlags:
+                        description: Add developer fields
+                        properties:
+                          manifests:
+                            description: List of custom manifests for the given component
+                            items:
+                              properties:
+                                contextDir:
+                                  default: ""
+                                  description: contextDir is the relative path to
+                                    the folder containing manifests in a repository
+                                  type: string
+                                sourcePath:
+                                  default: ""
+                                  description: 'sourcePath is the subpath within contextDir
+                                    where kustomize builds start. Examples include
+                                    any sub-folder or path: `base`, `overlays/dev`,
+                                    `default`, `odh` etc'
+                                  type: string
+                                uri:
+                                  default: ""
+                                  description: uri is the URI point to a git repo
+                                    with tag/branch. e.g  https://github.com/org/repo/tarball/<tag/branch>
+                                  type: string
+                              type: object
+                            type: array
+                        type: object
+                      image:
+                        description: Image name with tag separated by ':'
+                        type: string
+                      managementState:
+                        description: "Set to one of the following values: \n - \"Managed\"
+                          : the operator is actively managing the component and trying
+                          to keep it active. It will only upgrade the component if
+                          it is safe to do so \n - \"Removed\" : the operator is actively
+                          managing the component and will not install it, or if it
+                          is installed, the operator will try to remove it"
+                        enum:
+                        - Managed
+                        - Removed
+                        pattern: ^(Managed|Unmanaged|Force|Removed)$
+                        type: string
+                      replicas:
+                        description: Override replica count for component
+                        type: integer
+                    type: object
+                  datasciencepipelines:
+                    description: DataServicePipeline component configuration. Require
+                      OpenShift Pipelines Operator to be installed before enable component
+                    properties:
+                      apiServer:
                         properties:
                           image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
+                      artifactManager:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
+                      cache:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
                             type: string
                         type: object
                       devFlags:
@@ -124,52 +193,11 @@ spec:
                               type: object
                             type: array
                         type: object
-                      managementState:
-                        description: "Set to one of the following values: \n - \"Managed\"
-                          : the operator is actively managing the component and trying
-                          to keep it active. It will only upgrade the component if
-                          it is safe to do so \n - \"Removed\" : the operator is actively
-                          managing the component and will not install it, or if it
-                          is installed, the operator will try to remove it"
-                        enum:
-                        - Managed
-                        - Removed
-                        pattern: ^(Managed|Unmanaged|Force|Removed)$
-                        type: string
-                      replicas:
-                        description: Override replica count for component
-                        type: integer
-                    type: object
-                  datasciencepipelines:
-                    description: DataServicePipeline component configuration. Require
-                      OpenShift Pipelines Operator to be installed before enable component
-                    properties:
-                      devFlags:
-                        description: Add developer fields
+                      dspo:
                         properties:
-                          manifests:
-                            description: List of custom manifests for the given component
-                            items:
-                              properties:
-                                contextDir:
-                                  default: ""
-                                  description: contextDir is the relative path to
-                                    the folder containing manifests in a repository
-                                  type: string
-                                sourcePath:
-                                  default: ""
-                                  description: 'sourcePath is the subpath within contextDir
-                                    where kustomize builds start. Examples include
-                                    any sub-folder or path: `base`, `overlays/dev`,
-                                    `default`, `odh` etc'
-                                  type: string
-                                uri:
-                                  default: ""
-                                  description: uri is the URI point to a git repo
-                                    with tag/branch. e.g  https://github.com/org/repo/tarball/<tag/branch>
-                                  type: string
-                              type: object
-                            type: array
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
                         type: object
                       managementState:
                         description: "Set to one of the following values: \n - \"Managed\"
@@ -183,9 +211,21 @@ spec:
                         - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
+                      persistantAgent:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
                       replicas:
                         description: Override replica count for component
                         type: integer
+                      scheduledWorkflow:
+                        properties:
+                          image:
+                            description: Image name with tag separated by ':'
+                            type: string
+                        type: object
                     type: object
                   kserve:
                     description: Kserve component configuration. Require OpenShift
@@ -436,11 +476,13 @@ spec:
                       trustyAIOperator:
                         properties:
                           image:
+                            description: Image name with tag separated by ':'
                             type: string
                         type: object
                       trustyAIService:
                         properties:
                           image:
+                            description: Image name with tag separated by ':'
                             type: string
                         type: object
                     type: object

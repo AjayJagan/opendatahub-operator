@@ -166,3 +166,12 @@ func GetDomain(cli client.Client, name string, namespace string) (string, error)
 
 	return consoleRoute.Spec.Host[domainIndex+1:], nil
 }
+
+func IndexOf(slice []string, item string) int {
+	for i := range slice {
+		if slice[i] == item {
+			return i
+		}
+	}
+	return -1
+}
