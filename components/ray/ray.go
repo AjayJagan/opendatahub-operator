@@ -54,6 +54,27 @@ func (r *Ray) GetComponentName() string {
 	return ComponentName
 }
 
+func (r *Ray) GetCustomImageMap() map[string]string {
+	if r.DevFlags != nil {
+		return r.DevFlags.Images
+	}
+	return nil
+}
+
+func (r *Ray) GetLabelAndPathList(envList []string) []components.CustomImageParams {
+	paramsList := make([]components.CustomImageParams, 0)
+	pathMap := make(map[string]string, 0)
+	if r.DevFlags != nil && r.DevFlags.Images != nil && r.DevFlags.Images["odh-kuberay-operator-controller-image"] != "" {
+		label := " app.opendatahub.io/ray=true"
+		pathMap["/spec/template/spec/containers/0/image"] = r.DevFlags.Images["odh-kuberay-operator-controller-image"]
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	return paramsList
+}
+
 func (r *Ray) ReconcileComponent(ctx context.Context, cli client.Client, resConf *rest.Config, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec, _ bool) error {
 	var imageParamMap = map[string]string{
 		"odh-kuberay-operator-controller-image": "RELATED_IMAGE_ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE",
@@ -81,7 +102,7 @@ func (r *Ray) ReconcileComponent(ctx context.Context, cli client.Client, resConf
 		}
 	}
 	// Deploy Ray Operator
-	if err := deploy.DeployManifestsFromPath(cli, owner, RayPath, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
+	if err := deploy.DeployManifestsFromPath(cli, owner, RayPath, dscispec.ApplicationsNamespace, ComponentName, enabled, r); err != nil {
 		return err
 	}
 	// CloudService Monitoring handling
@@ -99,7 +120,7 @@ func (r *Ray) ReconcileComponent(ctx context.Context, cli client.Client, resConf
 		if err = deploy.DeployManifestsFromPath(cli, owner,
 			filepath.Join(deploy.DefaultManifestPath, "monitoring", "prometheus", "apps"),
 			dscispec.Monitoring.Namespace,
-			"prometheus", true); err != nil {
+			"prometheus", true, r); err != nil {
 			return err
 		}
 	}

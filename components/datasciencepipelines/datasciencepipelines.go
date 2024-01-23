@@ -14,6 +14,7 @@ import (
 
 	dsciv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/components"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/common"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/deploy"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/monitoring"
 )
@@ -52,6 +53,48 @@ func (d *DataSciencePipelines) OverrideManifests(_ string) error {
 
 func (d *DataSciencePipelines) GetComponentName() string {
 	return ComponentName
+}
+
+func (d *DataSciencePipelines) GetCustomImageMap() map[string]string {
+	if d.DevFlags != nil {
+		return d.DevFlags.Images
+	}
+	return nil
+}
+
+func (d *DataSciencePipelines) GetLabelAndPathList(envList []string) []components.CustomImageParams {
+	paramsList := make([]components.CustomImageParams, 0)
+	if d.DevFlags != nil && d.DevFlags.Images != nil && d.DevFlags.Images["datascience-pipelies-operator"] != "" {
+		var i int
+		pathMap := make(map[string]string, 0)
+		label := "app.opendatahub.io/data-science-pipelines-operator=true"
+		pathMap["/spec/template/spec/containers/0/image"] = d.DevFlags.Images["datascience-pipelies-operator"]
+		if d.DevFlags.Images["IMAGES_APISERVER"] != "" {
+			i = common.IndexOf(envList, "IMAGES_APISERVER")
+			pathMap[fmt.Sprintf("/spec/template/spec/containers/0/env/%d/value", i)] = d.DevFlags.Images["IMAGES_APISERVER"]
+		}
+		if d.DevFlags.Images["IMAGES_ARTIFACT"] != "" {
+			i = common.IndexOf(envList, "IMAGES_ARTIFACT")
+			pathMap[fmt.Sprintf("/spec/template/spec/containers/0/env/%d/value", i)] = d.DevFlags.Images["IMAGES_ARTIFACT"]
+		}
+		if d.DevFlags.Images["IMAGES_PERSISTENTAGENT"] != "" {
+			i = common.IndexOf(envList, "IMAGES_PERSISTENTAGENT")
+			pathMap[fmt.Sprintf("/spec/template/spec/containers/0/env/%d/value", i)] = d.DevFlags.Images["IMAGES_PERSISTENTAGENT"]
+		}
+		if d.DevFlags.Images["IMAGES_SCHEDULEDWORKFLOW"] != "" {
+			i = common.IndexOf(envList, "IMAGES_SCHEDULEDWORKFLOW")
+			pathMap[fmt.Sprintf("/spec/template/spec/containers/0/env/%d/value", i)] = d.DevFlags.Images["IMAGES_SCHEDULEDWORKFLOW"]
+		}
+		if d.DevFlags.Images["IMAGES_CACHE"] != "" {
+			i = common.IndexOf(envList, "IMAGES_CACHE")
+			pathMap[fmt.Sprintf("/spec/template/spec/containers/0/env/%d/value", i)] = d.DevFlags.Images["IMAGES_CACHE"]
+		}
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	return paramsList
 }
 
 func (d *DataSciencePipelines) ReconcileComponent(ctx context.Context,
@@ -93,7 +136,14 @@ func (d *DataSciencePipelines) ReconcileComponent(ctx context.Context,
 		}
 	}
 
-	if err := deploy.DeployManifestsFromPath(cli, owner, Path, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
+	if err := deploy.DeployManifestsFromPath(
+		cli,
+		owner,
+		Path,
+		dscispec.ApplicationsNamespace,
+		ComponentName,
+		enabled,
+		d); err != nil {
 		return err
 	}
 	// CloudService Monitoring handling
@@ -110,10 +160,11 @@ func (d *DataSciencePipelines) ReconcileComponent(ctx context.Context,
 		if err := d.UpdatePrometheusConfig(cli, enabled && monitoringEnabled, ComponentName); err != nil {
 			return err
 		}
+
 		if err = deploy.DeployManifestsFromPath(cli, owner,
 			filepath.Join(deploy.DefaultManifestPath, "monitoring", "prometheus", "apps"),
 			dscispec.Monitoring.Namespace,
-			"prometheus", true); err != nil {
+			"prometheus", true, d); err != nil {
 			return err
 		}
 	}

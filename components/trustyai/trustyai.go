@@ -51,6 +51,27 @@ func (t *TrustyAI) GetComponentName() string {
 	return ComponentName
 }
 
+func (t *TrustyAI) GetCustomImageMap() map[string]string {
+	if t.DevFlags != nil {
+		return t.DevFlags.Images
+	}
+	return nil
+}
+
+func (t *TrustyAI) GetLabelAndPathList(envList []string) []components.CustomImageParams {
+	paramsList := make([]components.CustomImageParams, 0)
+	pathMap := make(map[string]string, 0)
+	if t.DevFlags != nil && t.DevFlags.Images != nil && t.DevFlags.Images["trustyai-operator-image"] != "" {
+		label := "app.opendatahub.io/trustyai=true"
+		pathMap["/spec/template/spec/containers/0/image"] = t.DevFlags.Images["trustyai-operator-image"]
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	return paramsList
+}
+
 func (t *TrustyAI) ReconcileComponent(_ context.Context, cli client.Client, _ *rest.Config, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec, _ bool) error {
 	var imageParamMap = map[string]string{
 		"trustyaiServiceImage":  "RELATED_IMAGE_ODH_TRUSTYAI_SERVICE_IMAGE",
@@ -77,7 +98,7 @@ func (t *TrustyAI) ReconcileComponent(_ context.Context, cli client.Client, _ *r
 		}
 	}
 	// Deploy TrustyAI Operator
-	err = deploy.DeployManifestsFromPath(cli, owner, Path, dscispec.ApplicationsNamespace, t.GetComponentName(), enabled)
+	err = deploy.DeployManifestsFromPath(cli, owner, Path, dscispec.ApplicationsNamespace, t.GetComponentName(), enabled, t)
 
 	return err
 }

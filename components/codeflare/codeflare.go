@@ -56,6 +56,27 @@ func (c *CodeFlare) GetComponentName() string {
 	return ComponentName
 }
 
+func (c *CodeFlare) GetCustomImageMap() map[string]string {
+	if c.DevFlags != nil {
+		return c.DevFlags.Images
+	}
+	return nil
+}
+
+func (c *CodeFlare) GetLabelAndPathList(envList []string) []components.CustomImageParams {
+	paramsList := make([]components.CustomImageParams, 0)
+	pathMap := make(map[string]string, 0)
+	if c.DevFlags != nil && c.DevFlags.Images != nil && c.DevFlags.Images["odh-codeflare-operator-controller-image"] != "" {
+		label := "app.opendatahub.io/codeflare=true"
+		pathMap["/spec/template/spec/containers/0/image"] = c.DevFlags.Images["odh-codeflare-operator-controller-image"]
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	return paramsList
+}
+
 func (c *CodeFlare) ReconcileComponent(ctx context.Context, cli client.Client, resConf *rest.Config, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec, _ bool) error {
 	var imageParamMap = map[string]string{
 		"odh-codeflare-operator-controller-image": "RELATED_IMAGE_ODH_CODEFLARE_OPERATOR_IMAGE", // no need mcad, embedded in cfo
@@ -100,7 +121,7 @@ func (c *CodeFlare) ReconcileComponent(ctx context.Context, cli client.Client, r
 	if err := deploy.DeployManifestsFromPath(cli, owner, //nolint:revive,nolintlint
 		CodeflarePath,
 		dscispec.ApplicationsNamespace,
-		ComponentName, enabled); err != nil {
+		ComponentName, enabled, c); err != nil {
 		return err
 	}
 
@@ -121,7 +142,7 @@ func (c *CodeFlare) ReconcileComponent(ctx context.Context, cli client.Client, r
 		if err = deploy.DeployManifestsFromPath(cli, owner,
 			filepath.Join(deploy.DefaultManifestPath, "monitoring", "prometheus", "apps"),
 			dscispec.Monitoring.Namespace,
-			"prometheus", true); err != nil {
+			"prometheus", true, nil); err != nil {
 			return err
 		}
 	}

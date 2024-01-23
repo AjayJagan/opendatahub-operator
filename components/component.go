@@ -57,6 +57,9 @@ type DevFlags struct {
 	// List of custom manifests for the given component
 	// +optional
 	Manifests []ManifestsConfig `json:"manifests,omitempty"`
+	// A map of [deployment]: image:tag which can inject a custom image.
+	// +optional
+	Images map[string]string `json:"images,omitempty"`
 }
 
 type ManifestsConfig struct {
@@ -87,6 +90,13 @@ type ComponentInterface interface {
 	SetImageParamsMap(imageMap map[string]string) map[string]string
 	OverrideManifests(platform string) error
 	UpdatePrometheusConfig(cli client.Client, enable bool, component string) error
+	GetLabelAndPathList(envList []string) []CustomImageParams
+	GetCustomImageMap() map[string]string
+}
+
+type CustomImageParams struct {
+	Label string
+	Paths map[string]string
 }
 
 // UpdatePrometheusConfig update prometheus-configs.yaml to include/exclude <component>.rules

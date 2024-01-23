@@ -81,6 +81,36 @@ func (k *Kserve) GetComponentName() string {
 	return ComponentName
 }
 
+func (k *Kserve) GetCustomImageMap() map[string]string {
+	if k.DevFlags != nil {
+		return k.DevFlags.Images
+	}
+	return nil
+}
+
+func (k *Kserve) GetLabelAndPathList(envList []string) []components.CustomImageParams {
+	paramsList := make([]components.CustomImageParams, 0)
+	if k.DevFlags != nil && k.DevFlags.Images != nil && k.DevFlags.Images["kserve-controller-manager"] != "" {
+		pathMap := make(map[string]string, 0)
+		label := "app.opendatahub.io/kserve=true, control-plane=kserve-controller-manager"
+		pathMap["/spec/template/spec/containers/0/image"] = k.DevFlags.Images["kserve-controller-manager"]
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	if k.DevFlags != nil && k.DevFlags.Images != nil && k.DevFlags.Images["odh-model-controller"] != "" {
+		pathMap := make(map[string]string, 0)
+		label := "app.opendatahub.io/kserve=true, control-plane=odh-model-controller"
+		pathMap["/spec/template/spec/containers/0/image"] = k.DevFlags.Images["odh-model-controller"]
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	return paramsList
+}
+
 func (k *Kserve) ReconcileComponent(ctx context.Context, cli client.Client, resConf *rest.Config, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec, _ bool) error {
 	// paramMap for Kserve to use.
 	var imageParamMap = map[string]string{}
@@ -126,7 +156,7 @@ func (k *Kserve) ReconcileComponent(ctx context.Context, cli client.Client, resC
 		}
 	}
 
-	if err := deploy.DeployManifestsFromPath(cli, owner, Path, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
+	if err := deploy.DeployManifestsFromPath(cli, owner, Path, dscispec.ApplicationsNamespace, ComponentName, enabled, k); err != nil {
 		return err
 	}
 
@@ -143,7 +173,7 @@ func (k *Kserve) ReconcileComponent(ctx context.Context, cli client.Client, resC
 		}
 	}
 
-	if err := deploy.DeployManifestsFromPath(cli, owner, DependentPath, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
+	if err := deploy.DeployManifestsFromPath(cli, owner, DependentPath, dscispec.ApplicationsNamespace, ComponentName, enabled, k); err != nil {
 		if !strings.Contains(err.Error(), "spec.selector") || !strings.Contains(err.Error(), "field is immutable") {
 			// explicitly ignore error if error contains keywords "spec.selector" and "field is immutable" and return all other error.
 			return err

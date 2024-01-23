@@ -31,6 +31,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	operatorv1 "github.com/openshift/api/operator/v1"
 	ofapiv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	ofapiv2 "github.com/operator-framework/api/pkg/operators/v2"
 	"golang.org/x/exp/maps"
@@ -50,7 +51,7 @@ import (
 )
 
 const (
-	DefaultManifestPath = "/opt/manifests"
+	DefaultManifestPath = "/Users/ajay/RHODS/manifests"
 )
 
 // DownloadManifests function performs following tasks:
@@ -144,7 +145,15 @@ func DownloadManifests(componentName string, manifestConfig components.Manifests
 	return err
 }
 
-func DeployManifestsFromPath(cli client.Client, owner metav1.Object, manifestPath string, namespace string, componentName string, componentEnabled bool) error { //nolint:golint,revive,lll
+func DeployManifestsFromPath(
+	cli client.Client,
+	owner metav1.Object,
+	manifestPath string,
+	namespace string,
+	componentName string,
+	componentEnabled bool,
+	c components.ComponentInterface,
+) error { //nolint:golint,revive
 	// Render the Kustomize manifests
 	k := krusty.MakeKustomizer(krusty.MakeDefaultOptions())
 	fs := filesys.MakeFsOnDisk()
@@ -175,6 +184,11 @@ func DeployManifestsFromPath(cli client.Client, owner metav1.Object, manifestPat
 		return err
 	}
 
+	if c.GetCustomImageMap() != nil && c.GetManagementState() == operatorv1.Managed {
+		if err := plugins.UpdateImages(resMap, c); err != nil {
+			return err
+		}
+	}
 	objs, err := getResources(resMap)
 	if err != nil {
 		return err

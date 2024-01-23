@@ -71,6 +71,36 @@ func (m *ModelMeshServing) GetComponentName() string {
 	return ComponentName
 }
 
+func (m *ModelMeshServing) GetCustomImageMap() map[string]string {
+	if m.DevFlags != nil {
+		return m.DevFlags.Images
+	}
+	return nil
+}
+
+func (m *ModelMeshServing) GetLabelAndPathList(envList []string) []components.CustomImageParams {
+	paramsList := make([]components.CustomImageParams, 0)
+	if m.DevFlags != nil && m.DevFlags.Images != nil && m.DevFlags.Images["odh-model-mesh-controller"] != "" {
+		pathMap := make(map[string]string, 0)
+		label := "app.opendatahub.io/model-mesh=true, control-plane=modelmesh-controller"
+		pathMap["/spec/template/spec/containers/0/image"] = m.DevFlags.Images["odh-model-mesh-controller"]
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	if m.DevFlags != nil && m.DevFlags.Images != nil && m.DevFlags.Images["odh-model-controller"] != "" {
+		pathMap := make(map[string]string, 0)
+		label := "app.opendatahub.io/model-mesh=true, control-plane=odh-model-controller"
+		pathMap["/spec/template/spec/containers/0/image"] = m.DevFlags.Images["odh-model-controller"]
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	return paramsList
+}
+
 func (m *ModelMeshServing) ReconcileComponent(ctx context.Context,
 	cli client.Client,
 	resConf *rest.Config,
@@ -100,7 +130,7 @@ func (m *ModelMeshServing) ReconcileComponent(ctx context.Context,
 
 	// Update Default rolebinding
 	if enabled {
-		if m.DevFlags != nil {
+		if m.DevFlags != nil && m.DevFlags.Manifests != nil {
 			// Download manifests and update paths
 			if err = m.OverrideManifests(string(platform)); err != nil {
 				return err
@@ -115,14 +145,16 @@ func (m *ModelMeshServing) ReconcileComponent(ctx context.Context,
 			return err
 		}
 		// Update image parameters
-		if (dscispec.DevFlags == nil || dscispec.DevFlags.ManifestsUri == "") && (m.DevFlags == nil || len(m.DevFlags.Manifests) == 0) {
+		if (dscispec.DevFlags == nil || dscispec.DevFlags.ManifestsUri == "") &&
+			(m.DevFlags == nil || len(m.DevFlags.Manifests) == 0) &&
+			(m.DevFlags == nil || len(m.DevFlags.Images) == 0) {
 			if err := deploy.ApplyParams(Path, m.SetImageParamsMap(imageParamMap), false); err != nil {
 				return err
 			}
 		}
 	}
 
-	err = deploy.DeployManifestsFromPath(cli, owner, Path, dscispec.ApplicationsNamespace, ComponentName, enabled)
+	err = deploy.DeployManifestsFromPath(cli, owner, Path, dscispec.ApplicationsNamespace, ComponentName, enabled, m)
 	if err != nil {
 		return err
 	}
@@ -140,7 +172,7 @@ func (m *ModelMeshServing) ReconcileComponent(ctx context.Context,
 			}
 		}
 	}
-	if err := deploy.DeployManifestsFromPath(cli, owner, DependentPath, dscispec.ApplicationsNamespace, m.GetComponentName(), enabled); err != nil {
+	if err := deploy.DeployManifestsFromPath(cli, owner, DependentPath, dscispec.ApplicationsNamespace, m.GetComponentName(), enabled, m); err != nil {
 		// explicitly ignore error if error contains keywords "spec.selector" and "field is immutable" and return all other error.
 		if !strings.Contains(err.Error(), "spec.selector") || !strings.Contains(err.Error(), "field is immutable") {
 			return err
@@ -167,7 +199,7 @@ func (m *ModelMeshServing) ReconcileComponent(ctx context.Context,
 		if err = deploy.DeployManifestsFromPath(cli, owner,
 			filepath.Join(deploy.DefaultManifestPath, "monitoring", "prometheus", "apps"),
 			dscispec.Monitoring.Namespace,
-			"prometheus", true); err != nil {
+			"prometheus", true, m); err != nil {
 			return err
 		}
 	}

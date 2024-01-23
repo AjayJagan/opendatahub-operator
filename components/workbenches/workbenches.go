@@ -95,6 +95,36 @@ func (w *Workbenches) GetComponentName() string {
 	return ComponentName
 }
 
+func (w *Workbenches) GetCustomImageMap() map[string]string {
+	if w.DevFlags != nil {
+		return w.DevFlags.Images
+	}
+	return nil
+}
+
+func (w *Workbenches) GetLabelAndPathList(envList []string) []components.CustomImageParams {
+	paramsList := make([]components.CustomImageParams, 0)
+	if w.DevFlags != nil && w.DevFlags.Images != nil && w.DevFlags.Images["odh-notebook-controller-image"] != "" {
+		pathMap := make(map[string]string, 0)
+		label := "component.opendatahub.io/name=odh-notebook-controller"
+		pathMap["/spec/template/spec/containers/0/image"] = w.DevFlags.Images["odh-notebook-controller-image"]
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	if w.DevFlags != nil && w.DevFlags.Images != nil && w.DevFlags.Images["kf-notebook-controller-image"] != "" {
+		pathMap := make(map[string]string, 0)
+		label := "component.opendatahub.io/name=kf-notebook-controller"
+		pathMap["/spec/template/spec/containers/0/image"] = w.DevFlags.Images["kf-notebook-controller-image"]
+		paramsList = append(paramsList, components.CustomImageParams{
+			Label: label,
+			Paths: pathMap,
+		})
+	}
+	return paramsList
+}
+
 func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client, resConf *rest.Config, owner metav1.Object, dscispec *dsci.DSCInitializationSpec, _ bool) error {
 	var imageParamMap = map[string]string{
 		"odh-notebook-controller-image":    "RELATED_IMAGE_ODH_NOTEBOOK_CONTROLLER_IMAGE",
@@ -133,7 +163,7 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 		}
 	}
 
-	if err = deploy.DeployManifestsFromPath(cli, owner, notebookControllerPath, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
+	if err = deploy.DeployManifestsFromPath(cli, owner, notebookControllerPath, dscispec.ApplicationsNamespace, ComponentName, enabled, w); err != nil {
 		return err
 	}
 
@@ -159,7 +189,7 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 		if err = deploy.DeployManifestsFromPath(cli, owner,
 			kfnotebookControllerPath,
 			dscispec.ApplicationsNamespace,
-			ComponentName, enabled); err != nil {
+			ComponentName, enabled, w); err != nil {
 			return err
 		}
 		manifestsPath = notebookImagesPath
@@ -169,7 +199,7 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 	if err = deploy.DeployManifestsFromPath(cli, owner,
 		manifestsPath,
 		dscispec.ApplicationsNamespace,
-		ComponentName, enabled); err != nil {
+		ComponentName, enabled, w); err != nil {
 		return err
 	}
 	// CloudService Monitoring handling
@@ -188,7 +218,7 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 		if err = deploy.DeployManifestsFromPath(cli, owner,
 			filepath.Join(deploy.DefaultManifestPath, "monitoring", "prometheus", "apps"),
 			dscispec.Monitoring.Namespace,
-			"prometheus", true); err != nil {
+			"prometheus", true, w); err != nil {
 			return err
 		}
 	}

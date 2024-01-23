@@ -49,6 +49,12 @@ spec:
                       devFlags:
                         description: Add developer fields
                         properties:
+                          images:
+                            additionalProperties:
+                              type: string
+                            description: 'A map of [deployment]: image:tag which can
+                              inject a custom image.'
+                            type: object
                           manifests:
                             description: List of custom manifests for the given component
                             items:
@@ -92,6 +98,12 @@ spec:
                       devFlags:
                         description: Add developer fields
                         properties:
+                          images:
+                            additionalProperties:
+                              type: string
+                            description: 'A map of [deployment]: image:tag which can
+                              inject a custom image.'
+                            type: object
                           manifests:
                             description: List of custom manifests for the given component
                             items:
@@ -136,6 +148,12 @@ spec:
                       devFlags:
                         description: Add developer fields
                         properties:
+                          images:
+                            additionalProperties:
+                              type: string
+                            description: 'A map of [deployment]: image:tag which can
+                              inject a custom image.'
+                            type: object
                           manifests:
                             description: List of custom manifests for the given component
                             items:
@@ -182,6 +200,12 @@ spec:
                       devFlags:
                         description: Add developer fields
                         properties:
+                          images:
+                            additionalProperties:
+                              type: string
+                            description: 'A map of [deployment]: image:tag which can
+                              inject a custom image.'
+                            type: object
                           manifests:
                             description: List of custom manifests for the given component
                             items:
@@ -286,6 +310,12 @@ spec:
                       devFlags:
                         description: Add developer fields
                         properties:
+                          images:
+                            additionalProperties:
+                              type: string
+                            description: 'A map of [deployment]: image:tag which can
+                              inject a custom image.'
+                            type: object
                           manifests:
                             description: List of custom manifests for the given component
                             items:
@@ -329,6 +359,12 @@ spec:
                       devFlags:
                         description: Add developer fields
                         properties:
+                          images:
+                            additionalProperties:
+                              type: string
+                            description: 'A map of [deployment]: image:tag which can
+                              inject a custom image.'
+                            type: object
                           manifests:
                             description: List of custom manifests for the given component
                             items:
@@ -372,6 +408,12 @@ spec:
                       devFlags:
                         description: Add developer fields
                         properties:
+                          images:
+                            additionalProperties:
+                              type: string
+                            description: 'A map of [deployment]: image:tag which can
+                              inject a custom image.'
+                            type: object
                           manifests:
                             description: List of custom manifests for the given component
                             items:
@@ -415,6 +457,12 @@ spec:
                       devFlags:
                         description: Add developer fields
                         properties:
+                          images:
+                            additionalProperties:
+                              type: string
+                            description: 'A map of [deployment]: image:tag which can
+                              inject a custom image.'
+                            type: object
                           manifests:
                             description: List of custom manifests for the given component
                             items:
