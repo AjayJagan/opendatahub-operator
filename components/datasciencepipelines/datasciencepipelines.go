@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	ComponentName = "data-science-pipelines-operator"
+	ComponentName = "datasciencepipelines"
 	Path          = deploy.DefaultManifestPath + "/" + ComponentName + "/base"
 )
 

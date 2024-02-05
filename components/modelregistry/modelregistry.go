@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	ComponentName = "model-registry-operator"
+	ComponentName = "modelregistry"
 	Path          = deploy.DefaultManifestPath + "/" + ComponentName + "/overlays/odh"
 )
 

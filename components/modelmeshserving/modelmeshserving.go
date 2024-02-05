@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	ComponentName          = "model-mesh"
+	ComponentName          = "modelmeshserving"
 	Path                   = deploy.DefaultManifestPath + "/" + ComponentName + "/overlays/odh"
 	DependentComponentName = "odh-model-controller"
 	DependentPath          = deploy.DefaultManifestPath + "/" + DependentComponentName + "/base"
