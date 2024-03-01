@@ -394,6 +394,15 @@ var modelMeshGeneralPredicates = predicate.Funcs{
 	},
 }
 
+var forceUpdatePredicates = predicate.Funcs{
+	UpdateFunc: func(e event.UpdateEvent) bool {
+		if e.ObjectNew.GetAnnotations()["datasciencecluster.opendatahub.io/force-updatable"] == "true" {
+			return false
+		}
+		return true
+	},
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *DataScienceClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
@@ -406,7 +415,7 @@ func (r *DataScienceClusterReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		Owns(&authv1.RoleBinding{}, builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, modelMeshRBPredicates))).
 		Owns(&authv1.ClusterRole{}, builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, modelMeshRolePredicates))).
 		Owns(&authv1.ClusterRoleBinding{}, builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, modelMeshRBPredicates))).
-		Owns(&appsv1.Deployment{}).
+		Owns(&appsv1.Deployment{}, builder.WithPredicates(forceUpdatePredicates)).
 		Owns(&corev1.PersistentVolumeClaim{}).
 		Owns(&corev1.Service{}, builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, modelMeshGeneralPredicates))).
 		Owns(&appsv1.StatefulSet{}).
