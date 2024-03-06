@@ -358,10 +358,13 @@ make e2e-test -e OPERATOR_NAMESPACE=<namespace> -e E2E_TEST_FLAGS="--skip-deleti
 ### API Overview
 
 Please refer to [api documentation](docs/api-overview.md)
+<<<<<<< HEAD
 
 ### Component Integration
 
 Please refer to [components docs](components/README.md)
+=======
+>>>>>>> 0013c83 (use crd-ref-doc for api doc generation)
 
 ### Troubleshooting
 

@@ -1,4 +1,5 @@
 processor:
+<<<<<<< HEAD
   # RE2 regular expressions describing Group.Version that should be excluded from the generated documentation.
   ignoreGroupVersions:
     - "features.opendatahub.io/v1"
@@ -8,3 +9,13 @@ processor:
 render:
   # Version of Kubernetes to use when generating links to Kubernetes API documentation.
   kubernetesVersion: 1.24
+=======
+  # RE2 regular expressions describing types that should be excluded from the generated documentation.
+  ignoreTypes:
+    - "(DataScienceCluster|DSCInitialization|FeatureTracker)List$"
+  # RE2 regular expressions describing type fields that should be excluded from the generated documentation.
+
+render:
+  # Version of Kubernetes to use when generating links to Kubernetes API documentation.
+  kubernetesVersion: 1.22
+>>>>>>> 0013c83 (use crd-ref-doc for api doc generation)
