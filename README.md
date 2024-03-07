@@ -27,6 +27,7 @@ and configure these applications.
   - [Run e2e Tests](#run-e2e-tests)
   - [API Overview](#api-overview)
   - [Component Integration](#component-integration)
+  - [Component Integration](#component-integration-1)
   - [Troubleshooting](#troubleshooting)
   - [Upgrade testing](#upgrade-testing)
 
@@ -358,13 +359,14 @@ make e2e-test -e OPERATOR_NAMESPACE=<namespace> -e E2E_TEST_FLAGS="--skip-deleti
 ### API Overview
 
 Please refer to [api documentation](docs/api-overview.md)
-<<<<<<< HEAD
 
 ### Component Integration
 
 Please refer to [components docs](components/README.md)
-=======
->>>>>>> 0013c83 (use crd-ref-doc for api doc generation)
+
+### Component Integration
+
+Please refer to [components docs](components/README.md)
 
 ### Troubleshooting
 
