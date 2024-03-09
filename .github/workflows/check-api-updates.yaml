@@ -21,7 +21,7 @@ jobs:
           fi
       - name: check if doc changed
         run: |
-          echo git status -s | grep .md
+          git status -s | grep .md
           if [[ -z $(git status -s | grep .md) ]]
             then
               echo "doc is changed"
