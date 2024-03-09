@@ -12,26 +12,31 @@ jobs:
       - name: run make commands
         run: |
           make generate && make manifests && make api-docs
-      - name: check crd or apis updated
+      - name: check crd,apis and docs updated
         id: crd_api_update
         run: |
           crd_api_array=()
+          docs_array=()
           files=$(git status --porcelain | egrep "apis|config" | cut -b4-)
           for file in $files; do
             crd_api_array+=($file)
           done
-          echo "crd_api_array=$crd_api_array" >> $GITHUB_OUTPUT
-      - name: check docs updated
-        id: docs_update
-        run: |
-          docs_array=()
-          files=$(git status --porcelain | egrep "docs/" | cut -b4-)
+          files=$(git status --porcelain | egrep "docs/api-overview.md" | cut -b4-)
           for file in $files; do
             crd_api_array+=($file)
           done
-          echo "docs_array=$docs_array" >> $GITHUB_OUTPUT
-      - name: generate gh comments
-        if: ${{ steps.crd_api_update.outputs.crd_api_array.length > 0 && steps.crd_api_update.outputs.docs_array.length >0 }}
-        run: |
-          echo $steps.crd_api_update.outputs.crd_api_array
-          echo steps.crd_api_update.outputs.docs_array
+          exit 1
+      # - name: check docs updated
+      #   id: docs_update
+      #   run: |
+      #     docs_array=()
+      #     files=$(git status --porcelain | egrep "docs/" | cut -b4-)
+      #     for file in $files; do
+      #       crd_api_array+=($file)
+      #     done
+      #     echo "docs_array=$docs_array" >> $GITHUB_OUTPUT
+      # - name: generate gh comments
+      #   if: ${{ steps.crd_api_update.outputs.crd_api_array.length > 0 && steps.crd_api_update.outputs.docs_array.length >0 }}
+      #   run: |
+      #     echo $steps.crd_api_update.outputs.crd_api_array
+      #     echo steps.crd_api_update.outputs.docs_array
