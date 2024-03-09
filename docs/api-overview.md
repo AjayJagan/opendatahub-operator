@@ -96,7 +96,7 @@ installed Open Data Hub components with easy access to component UIs and documen
 
 
 
-#### Dashboard
+#### Dashboardasdsadasd
 
 
 

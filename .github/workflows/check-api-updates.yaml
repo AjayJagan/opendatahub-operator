@@ -12,17 +12,31 @@ jobs:
       - name: run make commands
         run: |
           make generate && make manifests && make api-docs
-      - name: check unstaged files
-        id: check_unstaged_files
+      - name: check if crd changed
         run: |
-          if [[ -z $(git status -s) ]]
+          echo git status -s | grep config/
+          if [[ -z $(git status -s | grep config/) ]]
           then
-            echo "is_files_unstaged=false" >> $GITHUB_OUTPUT
-          else
-            echo "is_files_unstaged=true" >> $GITHUB_OUTPUT
-            exit
+            echo "crd is changed"
           fi
-      - name: create pr comments and fail checks
-        if: ${{ steps.check_unstaged_files.is_files_unstaged }} == true
+      - name: check if doc changed
         run: |
-          git log
+          echo git status -s | grep .md
+          if [[ -z $(git status -s | grep .md) ]]
+            then
+              echo "doc is changed"
+          fi
+      # - name: check unstaged files
+      #   id: check_unstaged_files
+      #   run: |
+      #     if [[ -z $(git status -s) ]]
+      #     then
+      #       echo "is_files_unstaged=false" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "is_files_unstaged=true" >> $GITHUB_OUTPUT
+      #       exit
+      #     fi
+      # - name: create pr comments and fail checks
+      #   if: ${{ steps.check_unstaged_files.is_files_unstaged }} == true
+      #   run: |
+      #     git log
