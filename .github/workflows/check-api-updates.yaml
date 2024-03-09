@@ -31,7 +31,7 @@ jobs:
           done
           echo "docs_array=$docs_array" >> $GITHUB_OUTPUT
       - name: generate gh comments
-        if: ${{ ${#steps.crd_api_update.outputs.crd_api_array[@]} > 0 && ${#steps.crd_api_update.outputs.docs_array[@]} >0 }}
+        if: ${{ steps.crd_api_update.outputs.crd_api_array.length > 0 && steps.crd_api_update.outputs.docs_array.length >0 }}
         run: |
           echo $steps.crd_api_update.outputs.crd_api_array
           echo steps.crd_api_update.outputs.docs_array
