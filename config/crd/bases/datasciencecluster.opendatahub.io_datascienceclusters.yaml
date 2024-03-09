@@ -10,7 +10,7 @@ spec:
   group: datasciencecluster.opendatahub.io
   names:
     kind: DataScienceCluster
-    listKind: DataScienceClusterList
+    listKind: DataScienceClusterLists
     plural: datascienceclusters
     shortNames:
     - dsc

@@ -99,7 +99,7 @@ installed Open Data Hub components with easy access to component UIs and documen
 #### Dashboardasdsadasd
 
 
-
+asdasds
 Dashboard struct holds the configuration for the Dashboard component.
 
 _Appears in:_

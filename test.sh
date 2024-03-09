@@ -1,8 +1,11 @@
 #!/bin/bash
-files=$(git status --porcelain | cut -b4-)
+crd_api_array=()
+files=$(git status --porcelain | egrep "apis|config" | cut -b4-)
 for file in $files; do
-    echo $file
-    git add $file
-    read -p "enter a comment: " comments
-    git commit -m "${comments}"
+    crd_api_array+=($file)
 done
+# for each in "${crd_api_array[@]}"
+# do
+#   echo "$each"
+# done
+# #echo $crd_api_array

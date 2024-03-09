@@ -10,7 +10,7 @@ spec:
   group: dscinitialization.opendatahub.io
   names:
     kind: DSCInitialization
-    listKind: DSCInitializationList
+    listKind: DSCInitializationLists
     plural: dscinitializations
     shortNames:
     - dsci
