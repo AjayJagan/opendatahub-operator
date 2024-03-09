@@ -14,13 +14,13 @@ jobs:
           make generate && make manifests && make api-docs
       - name: check if crd changed
         run: |
-          if [[! -n $(git status -s | grep config/) ]]
+          if [[ -z $(git status -s | grep config/) -eq 1 ]]
           then
             echo "No crd is changed"
           fi
       - name: check if doc changed
         run: |
-          if [[! -n $(git status -s | grep .md) ]]
+          if [[ -z $(git status -s | grep .md) -eq 1 ]]
             then
               echo "doc is changed"
           fi
