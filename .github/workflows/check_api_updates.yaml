@@ -1,0 +1,14 @@
+name: Update crds and docs
+on:
+  pull_request:
+    paths:
+      - "apis/**"
+jobs:
+  update-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: check commit
+        run : |
+          git status
+
