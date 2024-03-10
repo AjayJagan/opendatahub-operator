@@ -345,6 +345,7 @@ _Appears in:_
 | `test` _string_ |  |
 | `newtestcomponent` _string_ |  |
 | `anothernewtestcomponent` _string_ |  |
+| `anothernewtestcomponen1t` _string_ |  |
 
 
 #### ControlPlaneSpec

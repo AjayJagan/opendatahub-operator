@@ -41,6 +41,8 @@ spec:
               components:
                 description: Override and fine tune specific component configurations.
                 properties:
+                  anothernewtestcomponen1t:
+                    type: string
                   anothernewtestcomponent:
                     type: string
                   codeflare:
