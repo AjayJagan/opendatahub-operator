@@ -12,6 +12,12 @@ jobs:
       - name: run make commands
         run: |
           make generate && make manifests && make api-docs
+      - name: check git status for new/modified files
+        run : |
+          if [[ ! -n $(git status -s) ]]
+          then
+              exit 0
+          fi
       - name: generate comments
         id: crd_api_update
         run: |
