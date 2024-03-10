@@ -37,6 +37,7 @@ jobs:
           for file in $files; do
             crd_api_array+=($file)
           done
+          exit 1
           
       # - name: check docs updated
       #   id: docs_update
