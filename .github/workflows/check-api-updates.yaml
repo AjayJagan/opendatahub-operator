@@ -15,13 +15,13 @@ jobs:
       - name: check git status
         id: git_status
         run : |
-          if [[ ! -n $(git status -s) ]]
+          if [[ -n $(git status -s) ]]
           then
-              echo "No new files to commit"
-              echo "is_files_to_commit_present=false" >> $GITHUB_OUTPUT
-          else
             echo "New files to commit available"
             echo "is_files_to_commit_present=true" >> $GITHUB_OUTPUT
+          else
+            echo "No new files to commit"
+            echo "is_files_to_commit_present=false" >> $GITHUB_OUTPUT
           fi
       - name: generate comments
         id: crd_api_update
