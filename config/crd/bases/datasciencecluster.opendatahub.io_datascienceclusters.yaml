@@ -43,8 +43,6 @@ spec:
                 properties:
                   anothernewtestcomponent:
                     type: string
-                  anothernewtestcomponent1:
-                    type: string
                   codeflare:
                     description: CodeFlare component configuration. If CodeFlare Operator
                       has been installed in the cluster, it should be uninstalled
