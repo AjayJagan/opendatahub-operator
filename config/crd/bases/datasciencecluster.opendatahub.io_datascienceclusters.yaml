@@ -10,7 +10,7 @@ spec:
   group: datasciencecluster.opendatahub.io
   names:
     kind: DataScienceCluster
-    listKind: DataScienceClusterLists
+    listKind: DataScienceClusterList
     plural: datascienceclusters
     shortNames:
     - dsc
@@ -41,6 +41,10 @@ spec:
               components:
                 description: Override and fine tune specific component configurations.
                 properties:
+                  anothernewtestcomponent:
+                    type: string
+                  anothernewtestcomponent1:
+                    type: string
                   codeflare:
                     description: CodeFlare component configuration. If CodeFlare Operator
                       has been installed in the cluster, it should be uninstalled
@@ -421,6 +425,8 @@ spec:
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
                     type: object
+                  newtestcomponent:
+                    type: string
                   ray:
                     description: Ray component configuration.
                     properties:

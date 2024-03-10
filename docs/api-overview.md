@@ -96,10 +96,10 @@ installed Open Data Hub components with easy access to component UIs and documen
 
 
 
-#### Dashboardasdsadasd
+#### Dashboard
 
 
-asdasds
+
 Dashboard struct holds the configuration for the Dashboard component.
 
 _Appears in:_
@@ -342,6 +342,10 @@ _Appears in:_
 | `ray` _[Ray](#ray)_ | Ray component configuration. |
 | `trustyai` _[TrustyAI](#trustyai)_ | TrustyAI component configuration. |
 | `modelregistry` _[ModelRegistry](#modelregistry)_ | ModelRegistry component configuration. |
+| `test` _string_ |  |
+| `newtestcomponent` _string_ |  |
+| `anothernewtestcomponent` _string_ |  |
+| `anothernewtestcomponent1` _string_ |  |
 
 
 #### ControlPlaneSpec
