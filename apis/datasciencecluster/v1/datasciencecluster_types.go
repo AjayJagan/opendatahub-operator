@@ -80,10 +80,9 @@ type Components struct {
 	// ModelRegistry component configuration.
 	ModelRegistry modelregistry.ModelRegistry `json:"modelregistry,omitempty"`
 
-	TestComponent            string `json:"test,omitempty"`
-	NewTestComponent         string `json:"newtestcomponent,omitempty"`
-	AnotherNewTestComponent  string `json:"anothernewtestcomponent,omitempty"`
-	AnotherNewTestComponen1t string `json:"anothernewtestcomponen1t,omitempty"`
+	TestComponent           string `json:"test,omitempty"`
+	NewTestComponent        string `json:"newtestcomponent,omitempty"`
+	AnotherNewTestComponent string `json:"anothernewtestcomponent,omitempty"`
 }
 
 // DataScienceClusterStatus defines the observed state of DataScienceCluster.
