@@ -25,7 +25,7 @@ jobs:
           fi
       - name: generate comments
         id: crd_api_update
-        if: ${{ steps.git_status.outputs.is_files_to_commit_present == true }}
+        if: ${{ steps.git_status.outputs.is_files_to_commit_present == 'true' }}
         run: |
           crd_api_array=()
           docs_array=()
