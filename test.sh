@@ -8,7 +8,7 @@
 # printf '%s\n' "${my_array[@]}"
 #echo $crd_api_array
 
-if [[ -n $(git status -s) ]]
+if [[ ! -n $(git status -s) ]]
 then
     echo "crd changed"
 fi  
