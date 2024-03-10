@@ -8,7 +8,9 @@
 # printf '%s\n' "${my_array[@]}"
 #echo $crd_api_array
 
-if [[ ! -n $(git status -s) ]]
+if [[ -n $(git status -s) ]]
 then
-    echo "crd changed"
+    echo no files to commit
+else
+    echo files to commit
 fi  
