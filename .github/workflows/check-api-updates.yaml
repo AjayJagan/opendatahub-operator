@@ -12,14 +12,20 @@ jobs:
       - name: run make commands
         run: |
           make generate && make manifests && make api-docs
-      - name: check git status for new/modified files
+      - name: check git status
+        id: git_status
         run : |
           if [[ ! -n $(git status -s) ]]
           then
-              exit 0
+              echo "No new files to commit"
+              echo "is_files_to_commit_present=false" >> $GITHUB_OUTPUT
+          else
+            echo "New files to commit available"
+            echo "is_files_to_commit_present=true" >> $GITHUB_OUTPUT
           fi
       - name: generate comments
         id: crd_api_update
+        if: ${{ steps.git_status.outputs.is_files_to_commit_present == "true" }}
         run: |
           crd_api_array=()
           docs_array=()
