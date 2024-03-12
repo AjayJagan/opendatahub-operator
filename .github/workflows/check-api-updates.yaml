@@ -49,11 +49,16 @@ jobs:
         with:
           script: |
             const { DOCS_FILES, CONFIG_FILES } = process.env
-            console.log(DOCS_FILES)
+            function getFileList(fileStr){
+              return fileStr.split(",").reduce((acc, curr)=>{
+                acc += `- ${curr}\\n`
+                return acc
+              },"")
+            }
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '❌##IMPORTANT!!!❌\nThis PR cannot be merged as some files need to be updated.\n\nPlease run `make generate && make manifests` to update the following files: \n\nPlease run `make api-docs` to update the following files:'
+              body: `## IMPORTANT NOTICE ❌\nThis PR cannot be merged as some files need to be updated.\n\nPlease run `make generate && make manifests` to update the following files: ${getFileList(CONFIG_FILES)}\nPlease run `make api-docs` to update the following files:${getFileList(DOCS_FILES)}`
             })
             core.setFailed("Please update the config and readme files using make commands")
