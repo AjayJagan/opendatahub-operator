@@ -55,10 +55,11 @@ jobs:
                 return acc
               },"")
             }
+            console.log(context)
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## IMPORTANT NOTICE ❌\nThis PR cannot be merged as some files need to be updated.\n\nPlease run \`make generate && make manifests\` to update the following files:\n\n ${getFileList(CONFIG_FILES)}\nPlease run \`make api-docs\` to update the following files:\n\n${getFileList(DOCS_FILES)}`
+              body: `## Important Message ❌\nThis PR cannot be merged as some files need to be updated.\n\nPlease run \`make generate && make manifests\` to update the following files:\n\n ${getFileList(CONFIG_FILES)}\nPlease run \`make api-docs\` to update the following files:\n\n${getFileList(DOCS_FILES)}`
             })
             core.setFailed("Please update the config and readme files using make commands")
