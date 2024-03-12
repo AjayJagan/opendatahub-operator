@@ -47,5 +47,6 @@ jobs:
           CONFIG_FILES: ${{ steps.git_status.outputs.config_files }}
         with:
           script: |
-            const {DOCS_FILES, CONFIG_FILES} = process.env
-            console.log(DOCS_FILES, CONFIG_FILES)
+            const { DOCS_FILES, CONFIG_FILES } = process.env
+            console.log(DOCS_FILES)
+            exec("exit 1")
