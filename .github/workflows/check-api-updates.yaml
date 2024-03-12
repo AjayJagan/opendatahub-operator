@@ -1,4 +1,4 @@
-name: Check crd and readme updates
+name: Check config and readme updates
 on:
   pull_request:
     paths:
@@ -20,13 +20,13 @@ jobs:
             echo "New files to commit available"
             echo "is_files_to_commit_present=true" >> $GITHUB_OUTPUT
             delim=""
-            crd_files_joined=""
+            config_files_joined=""
             files=$(git status --porcelain | egrep "apis|config" | cut -b4-)
             for file in $files; do
-              crd_files_joined="$crd_files_joined$delim$file"
+              config_files_joined="$config_files_joined$delim$file"
               delim=","
             done
-            echo "crd_files=$crd_files_joined" >> $GITHUB_OUTPUT
+            echo "config_files=$config_files_joined" >> $GITHUB_OUTPUT
             delim=""
             docs_files_joined=""
             files=$(git status --porcelain | egrep "docs/api-overview.md" | cut -b4-)
@@ -42,6 +42,10 @@ jobs:
       - uses: actions/github-script@v7
         if: ${{ steps.git_status.outputs.is_files_to_commit_present == 'true' }}
         name: generate comments
+        env:
+          DOCS_FILES: ${{ steps.git_status.outputs.docs_files }}
+          CONFIG_FILES: ${{ steps.git_status.outputs.config_files }}
         with:
           script: |
-            console.log(${{steps.git_status.outputs.docs_files}})
+            {DOCS_FILES, CONFIG_FILES} = process.env
+            console.log(DOCS_FILES, CONFIG_FILES)
