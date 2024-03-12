@@ -52,7 +52,7 @@ jobs:
             const { DOCS_FILES, CONFIG_FILES, BRANCH_NAME } = process.env
             function getFileList(fileStr){
               return fileStr.split(",").reduce((acc, curr)=>{
-                acc += `- https://github.com/${context.actor}/${context.repository.name}/tree/${BRANCH_NAME}/${curr}\n`
+                acc += `- https://github.com/${context.actor}/${context.repo.name}/tree/${BRANCH_NAME}/${curr}\n`
                 return acc
               },"")
             }
