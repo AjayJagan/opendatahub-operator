@@ -44,11 +44,4 @@ jobs:
         name: generate comments
         with:
           script: |
-            console.log(context)
-            let docFiles = ${{steps.git_status.outputs.docs_files}}
-            console.log(docFiles)
-
-        # run: |
-        #   echo ${{ steps.git_status.outputs.docs_files }}
-        #   echo ${{ steps.git_status.outputs.crd_files }}
-        #   exit 1
+            console.log(${{steps.git_status.outputs.docs_files}})

@@ -82,7 +82,6 @@ type Components struct {
 
 	TestComponent string `json:"test,omitempty"`
 	ModelServer   string `json:"modelserver,omitempty"`
-	AnotherServer string `json:"anotherserver,omitempty"`
 }
 
 // DataScienceClusterStatus defines the observed state of DataScienceCluster.
