@@ -18,7 +18,7 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: FeatureTracker represents a cluster-scoped resource in the Datassss
+        description: FeatureTracker represents a cluster-scoped resource in the Data
           Science Cluster, specifically designed for monitoring and managing objects
           created via the internal Features API. This resource serves a crucial role
           in cross-namespace resource management, acting as an owner reference for
