@@ -19,6 +19,21 @@ jobs:
           then
             echo "New files to commit available"
             echo "is_files_to_commit_present=true" >> $GITHUB_OUTPUT
+          delim=""
+          crd_files_joined=""
+          files=$(git status --porcelain | egrep "apis|config" | cut -b4-)
+          for file in $files; do
+            crd_files_joined="$crd_files_joined$delim$file"
+            delim=","
+          echo "crd_files=$crd_files_joined" >> $GITHUB_OUTPUT
+          done
+          docs_files_joined=""
+          files=$(git status --porcelain | egrep "docs/api-overview.md" | cut -b4-)
+          for file in $files; do
+             docs_files_joined="$docs_files_joined$delim$file"
+            delim=","
+          done
+          echo "docs_files=$docs_files_joined" >> $GITHUB_OUTPUT
           else
             echo "No new files to commit"
             echo "is_files_to_commit_present=false" >> $GITHUB_OUTPUT
@@ -27,16 +42,8 @@ jobs:
         id: crd_api_update
         if: ${{ steps.git_status.outputs.is_files_to_commit_present == 'true' }}
         run: |
-          crd_api_array=()
-          docs_array=()
-          files=$(git status --porcelain | egrep "apis|config" | cut -b4-)
-          for file in $files; do
-            crd_api_array+=($file)
-          done
-          files=$(git status --porcelain | egrep "docs/api-overview.md" | cut -b4-)
-          for file in $files; do
-            crd_api_array+=($file)
-          done
+          echo ${{ steps.git_status.outputs.docs_files }}
+          echo ${{ steps.git_status.outputs.crd_files }}
           exit 1
           
       # - name: check docs updated
