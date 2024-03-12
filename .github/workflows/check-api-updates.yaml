@@ -19,24 +19,23 @@ jobs:
           then
             echo "New files to commit available"
             echo "is_files_to_commit_present=true" >> $GITHUB_OUTPUT
-          delim=""
-          crd_files_joined=""
-          files=$(git status --porcelain | egrep "apis|config" | cut -b4-)
-          for file in $files; do
-            crd_files_joined="$crd_files_joined$delim$file"
-            delim=","
-          echo "$crd_files_joined"
-          echo "crd_files=$crd_files_joined" >> $GITHUB_OUTPUT
-          done
-          delim=""
-          docs_files_joined=""
-          files=$(git status --porcelain | egrep "docs/api-overview.md" | cut -b4-)
-          for file in $files; do
-             docs_files_joined="$docs_files_joined$delim$file"
-            delim=","
-          done
-          echo "$docs_files_joined"
-          echo "docs_files=$docs_files_joined" >> $GITHUB_OUTPUT
+            delim=""
+            crd_files_joined=""
+            files=$(git status --porcelain | egrep "apis|config" | cut -b4-)
+            for file in $files; do
+              crd_files_joined="$crd_files_joined$delim$file"
+              delim=","
+            done
+            echo "crd_files=$crd_files_joined" >> $GITHUB_OUTPUT
+            delim=""
+            docs_files_joined=""
+            files=$(git status --porcelain | egrep "docs/api-overview.md" | cut -b4-)
+            for file in $files; do
+              docs_files_joined="$docs_files_joined$delim$file"
+              delim=","
+            done
+            echo "$docs_files_joined"
+            echo "docs_files=$docs_files_joined" >> $GITHUB_OUTPUT
           else
             echo "No new files to commit"
             echo "is_files_to_commit_present=false" >> $GITHUB_OUTPUT
