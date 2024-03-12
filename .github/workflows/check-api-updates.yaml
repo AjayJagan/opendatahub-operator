@@ -45,8 +45,8 @@ jobs:
         with:
           script: |
             console.log(context)
-            var doc_files = ${{ steps.git_status.outputs.docs_files }}
-            console.log(doc_files)
+            let docFiles = ${{steps.git_status.outputs.docs_files}}
+            console.log(docFiles)
 
         # run: |
         #   echo ${{ steps.git_status.outputs.docs_files }}
