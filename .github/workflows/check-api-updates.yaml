@@ -34,16 +34,21 @@ jobs:
               docs_files_joined="$docs_files_joined$delim$file"
               delim=","
             done
-            echo "$docs_files_joined"
             echo "docs_files=$docs_files_joined" >> $GITHUB_OUTPUT
           else
             echo "No new files to commit"
             echo "is_files_to_commit_present=false" >> $GITHUB_OUTPUT
           fi
-      - name: generate comments
-        id: crd_api_update
+      - uses: actions/github-script@v7
         if: ${{ steps.git_status.outputs.is_files_to_commit_present == 'true' }}
-        run: |
-          echo ${{ steps.git_status.outputs.docs_files }}
-          echo ${{ steps.git_status.outputs.crd_files }}
-          exit 1
+        name: generate comments
+        with:
+          script: |
+            console.log(context)
+            var doc_files = ${{ steps.git_status.outputs.docs_files }}
+            console.log(doc_files)
+
+        # run: |
+        #   echo ${{ steps.git_status.outputs.docs_files }}
+        #   echo ${{ steps.git_status.outputs.crd_files }}
+        #   exit 1
