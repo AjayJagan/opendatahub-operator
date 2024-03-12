@@ -49,4 +49,4 @@ jobs:
           script: |
             const { DOCS_FILES, CONFIG_FILES } = process.env
             console.log(DOCS_FILES)
-            exec.exec("exit 1")
+            core.setFailed("Please update the config and readme files using make commands")
