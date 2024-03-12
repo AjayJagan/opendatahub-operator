@@ -54,6 +54,6 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '👋 Thanks for reporting!'
+              body: '❌ ## !IMPORTANT!\n  ### This PR cannot be merged as some files should be updated.'
             })
             core.setFailed("Please update the config and readme files using make commands")
