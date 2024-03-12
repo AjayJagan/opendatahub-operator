@@ -18,7 +18,7 @@ spec:
     shortNames:
       - csv
       - csvs
-    singular: clusterserviceversion
+    singular: clusterserviceversionssss
   scope: Namespaced
   versions:
     - additionalPrinterColumns:

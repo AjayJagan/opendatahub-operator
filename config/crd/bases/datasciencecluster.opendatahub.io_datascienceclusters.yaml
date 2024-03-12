@@ -9,9 +9,9 @@ metadata:
 spec:
   group: datasciencecluster.opendatahub.io
   names:
-    kind: DataScienceCluster
-    listKind: DataScienceClusterList
-    plural: datascienceclusters
+    kind: datascienceclusters
+    listKind: DataScienceClusterLists
+    plural: datascienceclusterss
     shortNames:
     - dsc
     singular: datasciencecluster
