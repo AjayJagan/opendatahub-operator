@@ -25,6 +25,7 @@ jobs:
           for file in $files; do
             crd_files_joined="$crd_files_joined$delim$file"
             delim=","
+          echo "$crd_files_joined"
           echo "crd_files=$crd_files_joined" >> $GITHUB_OUTPUT
           done
           delim=""
@@ -34,6 +35,7 @@ jobs:
              docs_files_joined="$docs_files_joined$delim$file"
             delim=","
           done
+          echo "$docs_files_joined"
           echo "docs_files=$docs_files_joined" >> $GITHUB_OUTPUT
           else
             echo "No new files to commit"
@@ -46,18 +48,3 @@ jobs:
           echo ${{ steps.git_status.outputs.docs_files }}
           echo ${{ steps.git_status.outputs.crd_files }}
           exit 1
-          
-      # - name: check docs updated
-      #   id: docs_update
-      #   run: |
-      #     docs_array=()
-      #     files=$(git status --porcelain | egrep "docs/" | cut -b4-)
-      #     for file in $files; do
-      #       crd_api_array+=($file)
-      #     done
-      #     echo "docs_array=$docs_array" >> $GITHUB_OUTPUT
-      # - name: generate gh comments
-      #   if: ${{ steps.crd_api_update.outputs.crd_api_array.length > 0 && steps.crd_api_update.outputs.docs_array.length >0 }}
-      #   run: |
-      #     echo $steps.crd_api_update.outputs.crd_api_array
-      #     echo steps.crd_api_update.outputs.docs_array
