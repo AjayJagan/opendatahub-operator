@@ -49,4 +49,10 @@ jobs:
           script: |
             const { DOCS_FILES, CONFIG_FILES } = process.env
             console.log(DOCS_FILES)
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '👋 Thanks for reporting!'
+            })
             core.setFailed("Please update the config and readme files using make commands")
