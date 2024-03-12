@@ -27,6 +27,7 @@ jobs:
             delim=","
           echo "crd_files=$crd_files_joined" >> $GITHUB_OUTPUT
           done
+          delim=""
           docs_files_joined=""
           files=$(git status --porcelain | egrep "docs/api-overview.md" | cut -b4-)
           for file in $files; do
