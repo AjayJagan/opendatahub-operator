@@ -50,6 +50,9 @@ jobs:
         with:
           script: |
             const { DOCS_FILES, CONFIG_FILES, BRANCH_NAME } = process.env
+            console.log(context)
+            console.log(context.repo)
+            console.log(context.repository)
             function getFileList(fileStr){
               return fileStr.split(",").reduce((acc, curr)=>{
                 acc += `- https://github.com/${context.actor}/${context.repo.name}/tree/${BRANCH_NAME}/${curr}\n`
