@@ -46,6 +46,7 @@ jobs:
         env:
           DOCS_FILES: ${{ steps.git_status.outputs.docs_files }}
           CONFIG_FILES: ${{ steps.git_status.outputs.config_files }}
+          BRANCH_NAME: ${{ github.head_ref }} 
         with:
           script: |
             const { DOCS_FILES, CONFIG_FILES } = process.env
@@ -56,6 +57,7 @@ jobs:
               },"")
             }
             console.log(context)
+            console.log(process.env.BRANCH_NAME)
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
