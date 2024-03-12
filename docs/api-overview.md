@@ -342,6 +342,7 @@ _Appears in:_
 | `ray` _[Ray](#ray)_ | Ray component configuration. |
 | `trustyai` _[TrustyAI](#trustyai)_ | TrustyAI component configuration. |
 | `modelregistry` _[ModelRegistry](#modelregistry)_ | ModelRegistry component configuration. |
+| `test` _string_ |  |
 
 
 #### ControlPlaneSpec
