@@ -103,6 +103,7 @@ type DataScienceClusterStatus struct {
 	// List of components with status if installed or not
 	InstalledComponents map[string]bool `json:"installedComponents,omitempty"`
 	TestComponent       string          `json:"testComponent,omitempty"`
+	Test1Component      string          `json:"test1Component,omitempty"`
 }
 
 //+kubebuilder:object:root=true
