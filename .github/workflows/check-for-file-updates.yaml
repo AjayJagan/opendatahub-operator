@@ -29,9 +29,9 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-              ### Important Message :x:
+              ## Important Message :x:
 
-              Please run to auto-generate files:
+              Please run the below commands to auto-generate files and make sure to commit them:
                 - `make generate`
                 - `make manifests`
                 - `make api-docs`
