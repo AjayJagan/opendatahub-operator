@@ -24,13 +24,19 @@ jobs:
             echo "No new files to commit"
             echo "is_files_to_commit_present=false" >> $GITHUB_OUTPUT
           fi
-      - name: generate comments
+      - name: Generate comments
         if: ${{ steps.git_status.outputs.is_files_to_commit_present == 'true' }}
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-              Hello world ! :wave:
-              ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              ### Important Message :x:
+
+              Please run to auto-generate files:
+                - `make generate`
+                - `make manifests`
+                - `make api-docs`
+            
+              For more info: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       - name: Print git status and fail pr
         if: ${{ steps.git_status.outputs.is_files_to_commit_present == 'true' }}
         run: |
