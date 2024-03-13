@@ -31,7 +31,7 @@ jobs:
           message: |
               ## Important Message :x:
 
-              Please run the below commands to auto-generate files and make sure to commit them:
+              This PR cannot be merged as some files are not upto date. Please run the below commands to auto-generate files and make sure to commit them:
                 - `make generate`
                 - `make manifests`
                 - `make api-docs`
