@@ -5,6 +5,8 @@ on:
       - "apis/**"
 jobs:
   file-updates:
+    permissions:
+      pull-requests: write
     name: Test file updates
     runs-on: ubuntu-latest
     steps:
