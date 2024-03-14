@@ -13,7 +13,7 @@ jobs:
         id: generate-files
         run: |
           make_command = "make generate manifests api-docs"
-          $make_command
+          eval $make_command
           echo "make_command=$make_command" >> $GITHUB_OUTPUT
       - name: Ensure generated files are up-to-date
         id: check_generated_files
