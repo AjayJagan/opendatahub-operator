@@ -32,7 +32,7 @@ jobs:
           message: |
               ## This PR can't be merged just yet 😢
 
-                Please run ${{ steps.generate-files.outputs.gen_targets }} and commit the changes.
+                Please run ${{ steps.check_generated_files.outputs.gen_targets }} and commit the changes.
 
               For more info: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       - name: Print git status and fail pr
