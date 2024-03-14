@@ -14,7 +14,7 @@ jobs:
         run: |
           CMD="make generate manifests api-docs"
           $CMD
-          echo "CMD='$CMD'" >> $GITHUB_OUTPUT
+          echo "CMD=`$CMD`" >> $GITHUB_OUTPUT
       - name: Ensure generated files are up-to-date
         id: check_generated_files
         run : |
