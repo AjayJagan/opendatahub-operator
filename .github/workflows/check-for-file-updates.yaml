@@ -13,7 +13,7 @@ jobs:
         id: generate-files
         run: |
           make generate manifests api-docs
-          echo "gen_targets=$(fc -ln -1)" >> $GITHUB_OUTPUT
+          echo "gen_targets=echo $(fc -ln -1)" >> $GITHUB_OUTPUT
       - name: Ensure generated files are up-to-date
         id: check_generated_files
         run : |
