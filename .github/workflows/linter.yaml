@@ -5,10 +5,7 @@ on:
       - main
       - incubation
   pull_request:
-permissions:
-  contents: read
-  pull-requests: read
-  checks: write
+permissions: write-all
 jobs:
   golangci:
     name: golangci-lint
