@@ -32,7 +32,7 @@ func isSelfManaged(cli client.Client) (Platform, error) {
 	err := cli.List(context.TODO(), clusterCsvs)
 	if err != nil {
 		return "", err
-	} else { //nolint:golint,revive // Readability on else
+	} else {
 		for _, csv := range clusterCsvs.Items {
 			if strings.Contains(csv.Spec.DisplayName, string(OpenDataHub)) {
 				return OpenDataHub, nil
