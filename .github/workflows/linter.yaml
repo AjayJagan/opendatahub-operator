@@ -7,32 +7,31 @@ on:
   pull_request:
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
   checks: write
 jobs:
   golangci:
     name: golangci-lint
     runs-on: ubuntu-latest
-    # env:
-    #   REPOSITORY: go/src/github.com/${{ github.repository }}
+    env:
+      REPOSITORY: go/src/github.com/${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
-        # with:
-        #   path: ${{ env.REPOSITORY }}
+        with:
+          path: ${{ env.REPOSITORY }}
       - name: Set up Go env
         uses: actions/setup-go@v4
         with:
-          # go-version-file: ${{ env.REPOSITORY }}/go.mod
-          go-version-file: go.mod
-      # - name: Set $GOPATH
-      #   run: |
-      #     echo "GOPATH=${{ github.workspace }}/go" >> $GITHUB_ENV
-      #     echo "${{ github.workspace }}/go/bin" >> $GITHUB_PATH
-      #   shell: bash
+          go-version-file: ${{ env.REPOSITORY }}/go.mod
+      - name: Set $GOPATH
+        run: |
+          echo "GOPATH=${{ github.workspace }}/go" >> $GITHUB_ENV
+          echo "${{ github.workspace }}/go/bin" >> $GITHUB_PATH
+        shell: bash
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.54.0
-          # working-directory: ${{ env.REPOSITORY }}
+          working-directory: ${{ env.REPOSITORY }}
           skip-cache: true
           args: --timeout 5m0s

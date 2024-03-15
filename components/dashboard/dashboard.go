@@ -82,7 +82,6 @@ func (d *Dashboard) GetComponentName() string {
 	return ComponentName
 }
 
-//nolint:gocyclo
 func (d *Dashboard) ReconcileComponent(ctx context.Context,
 	cli client.Client,
 	owner metav1.Object,
