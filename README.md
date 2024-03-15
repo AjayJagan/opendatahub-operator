@@ -1,7 +1,7 @@
 
 This operator is the primary operator for Open Data Hub. It is responsible for enabling Data science applications like 
 Jupyter Notebooks, Modelmesh serving, Datascience pipelines etc. The operator makes use of `DataScienceCluster` CRD to deploy
-and configure these applications.
+and configure these applicationss.
 
 ### Table of contents
 - [Usage](#usage)
