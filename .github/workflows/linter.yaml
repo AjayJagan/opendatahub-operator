@@ -33,5 +33,5 @@ jobs:
         with:
           version: v1.54.0
           # working-directory: ${{ env.REPOSITORY }}
-          skip-cache: true
+          # skip-cache: true
           args: --timeout 5m0s
