@@ -1,0 +1,15 @@
+name: Release ODH
+on:
+  pull_request:
+    types:
+      - closed
+jobs:
+  release-odh:
+    if: github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'ODH Release') && endsWith(github.event.pull_request.title, 'Version Update')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get version and trackerUrl from body
+        run: |
+          IFS=$'|' read -d '' -r -a array <<< ${{ github.event.pull_request.body }}
+          echo "${array[@]}"
+          printf '%s\n' "${array[@]}"
