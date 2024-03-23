@@ -6,11 +6,11 @@ GITHUB_URL="https://github.com/"
 # component: notebook, dsp, kserve, dashbaord, cf/ray/kueue, trustyai, modelmesh, modelregistry.
 # in the format of "repo-org:repo-name:branch-name:source-folder:target-folder".
 declare -A COMPONENT_MANIFESTS=(
-    ["codeflare"]="opendatahub-io:codeflare-operator:main:config:codeflare"
-    ["ray"]="opendatahub-io:kuberay:master:ray-operator/config:ray"
-    ["kueue"]="opendatahub-io:kueue:dev:config:kueue"
-    ["data-science-pipelines-operator"]="opendatahub-io:data-science-pipelines-operator:main:config:data-science-pipelines-operator"
-    ["odh-dashboard"]="opendatahub-io:odh-dashboard:incubation:manifests:dashboard"
+    ["codeflare"]="opendatahub-io:codeflare-operator:test1:config:codeflare"
+    ["ray"]="opendatahub-io:kuberay:test1:ray-operator/config:ray"
+    ["kueue"]="opendatahub-io:kueue:test1:config:kueue"
+    ["data-science-pipelines-operator"]="opendatahub-io:data-science-pipelines-operator:test1:config:data-science-pipelines-operator"
+    ["odh-dashboard"]="opendatahub-io:odh-dashboard:test1:manifests:dashboard"
     ["kf-notebook-controller"]="opendatahub-io:kubeflow:v1.7-branch:components/notebook-controller/config:odh-notebook-controller/kf-notebook-controller"
     ["odh-notebook-controller"]="opendatahub-io:kubeflow:v1.7-branch:components/odh-notebook-controller/config:odh-notebook-controller/odh-notebook-controller"
     ["notebooks"]="opendatahub-io:notebooks:main:manifests:notebooks"
