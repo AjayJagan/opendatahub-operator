@@ -1,0 +1,16 @@
+{
+    "version": "2.10.0",
+    "codeflare": "test1",
+    "kuberay": "test2",
+    "kueue": "test3",
+    "dspo": "test4",
+    "dashboard": "test5",
+    "notebooks": "test",
+    "notebook-controller": "test",
+    "kf-notebook-controller": "test",
+    "trustyai": "tedt",
+    "model-mesh": "tet",
+    "odh-model-controller": "tedt5",
+    "kserve": "release/v10",
+    "modelregistry": "release/test"
+}
