@@ -1,0 +1,65 @@
+name: "Release: Update branches and test e2e"
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: The version to update.
+        required: true
+      tracker-url:
+        type: string
+        description: The URL to tracker issue.
+        required: true
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+  VERSION: ${{ inputs.version }}
+  TRACKER_URL: ${{ inputs.tracker-url }}
+jobs:
+  create-e2e-test-pr:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    name: Create e2e test pr and update image tags
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update branches in get_all_manifest.sh
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - run: npm install @octokit/action
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const script = require('./.github/scripts/get-release-branches.js')
+            console.log(script({core}))
+      - name: cleanup node_modules
+        run: rm -rf node_modules && rm package*.json
+      - name: Update versions
+        run: ./.github/scripts/update-manifests-tags.sh ${{ env.CODEFLARE }} ${{ env.KUBERAY }} ${{ env.KUEUE }} ${{ env.DSP }} ${{ env.DASHBOARD }} ${{ env.NOTEBOOK-CONTROLLER }} ${{ env.NOTEBOOK-CONTROLLER }} ${{ env.NOTEBOOKS }} ${{ env.TRUSTYAI }} ${{ env.MODELMESH }} ${{ env.ODH-MODEL-CONTROLLER }} ${{ env.KSERVE }} ${{ env.MODEL-REGISTRY }}
+      - name: Create test pr
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "[DO NOT MERGE] Test ${{ env.VERSION }}  Release"
+          branch: odh-release/e2e-test
+          delete-branch: true
+          title: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
+      - name: Wait for checks to pass
+        run: ./.github/scripts/wait-for-checks.sh ${{ steps.cpr.outputs.pull-request-number }}
+      - name: Close PR
+        uses: peter-evans/close-pull@v3
+        with:
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          comment: Auto-closing pull request after success checks
+          delete-branch: true
+      - name: Push version tag to quay.io
+        run: |
+          # Need ODH creds
+          # podman login -u ajaganat -p ${{ secrets.PODMAN_PASSWORD }} quay.io/ajaganat
+          # podman pull quay.io/ajaganat/opendatahub-operator:pr-23
+          # podman push quay.io/ajaganat/opendatahub-operator:pr-23 quay.io/ajaganat/opendatahub-operator:${{ env.VERSION }}
+      - name: Send context to next workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ env.GITHUB_TOKEN }}
+          event-type: context
+          client-payload: '{"version": "${{ env.VERSION }}", "trackerUrl": "${{ env.TRACKER_URL }}"}'
