@@ -1,0 +1,39 @@
+name: "Update versions"
+on:
+  workflow_run:
+    workflows: ["Update tags in draft pr"]
+    types: [completed]
+jobs:
+  update-versions:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Read json and set env vars
+        run: echo "VERSION=$(cat .github/resources/manifest-versions.json | jq .version )" >> $GITHUB_ENV
+      - name: Update versions in relevant files
+        run: |
+          NEW_VERSION=${{ env.VERSION }}
+          CURRENT_VERSION=$(cat Makefile | grep -w "VERSION ?=" | cut -d ' ' -f 3)
+          sed -i -e "s/^VERSION ?=.*/VERSION ?= $NEW_VERSION/g" Makefile
+          sed -i -e "s|containerImage.*|containerImage: quay.io/opendatahub/opendatahub-operator:v$NEW_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
+          sed -i -e "s|createdAt.*|createdAt: \"$(date +"%Y-%-m-%dT00:00:00Z")\"|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
+          sed -i -e "s|name: opendatahub-operator.v.*|name: opendatahub-operator.v$NEW_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
+          sed -i -e "s|version: $CURRENT_VERSION.*|version: $NEW_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
+          sed -i -e "s|replaces.*|replaces: opendatahub-operator.v$CURRENT_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
+      - name: Run make bundle
+        run: make bundle
+      - name: Clean up unwanted changes
+        run: |
+          sed -i -e "s|image: quay.io/opendatahub/opendatahub-operator:latest.*|image: REPLACE_IMAGE:latest|g" bundle/manifests/opendatahub-operator.clusterserviceversion.yaml
+          rm ./config/manager/kustomization.yaml
+      - name: Create version update pr
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "ODH Release ${{ env.VERSION }}"
+          branch: odh-release/version-update
+          delete-branch: true
+          title: "ODH Release ${{ env.VERSION }}: Version Update"
