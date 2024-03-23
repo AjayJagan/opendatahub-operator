@@ -1,0 +1,39 @@
+const { Octokit } = require("@octokit/action");
+
+module.exports = ({ core }) => {
+    const octokit = new Octokit();
+    const { TRACKER_URL } = process.env
+    console.log(TRACKER_URL)
+    const arr = TRACKER_URL.split("/")
+    const owner = arr[3]
+    const repo = arr[4]
+    const issue_number = arr[6]
+
+    octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+        owner,
+        repo,
+        issue_number,
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Accept': 'application/vnd.github.text+json'
+        }
+    }).then((result) => {
+        result.data.forEach((issue)=>{
+            issueCommentBody = issue.body_text
+            if(issueCommentBody.includes("#Release#")){
+                let components = issueCommentBody.split("\n")
+                components = components.splice(2,components.length-1)
+                components.forEach(component=>{
+                [componentName, branchUrl] = component.split("|")
+                const splitArr = branchUrl.split("/")
+                const idx = splitArr.indexOf("tree")
+                const branchName = splitArr.slice(idx+1).join("/")
+                core.exportVariable(componentName.toUpperCase(), branchName);
+            })
+            }
+        })
+    }).catch(e => {
+        console.log("Failed to get branches", e)
+    })
+}
+
