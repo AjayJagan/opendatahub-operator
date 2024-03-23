@@ -1,0 +1,59 @@
+name: "Update tags in draft pr"
+on:
+  workflow_dispatch: 
+jobs:
+  create-e2e-test-pr:
+    permissions: write-all
+    name: Create e2e test pr
+    runs-on: ubuntu-latest
+    env:
+       GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        # This step needs to be automated
+      - name: Read json and set env vars
+        run: |
+          echo "VERSION=$(cat .github/resources/manifest-versions.json | jq .version )" >> $GITHUB_ENV
+          echo "CODEFLARE_BRANCH=$(cat .github/resources/manifest-versions.json | jq .codeflare )" >> $GITHUB_ENV
+          echo "KUBERAY_BRANCH=$(cat .github/resources/manifest-versions.json | jq .kuberay )" >> $GITHUB_ENV
+          echo "KUEUE_BRANCH=$(cat .github/resources/manifest-versions.json | jq .kueue )" >> $GITHUB_ENV
+          echo "DSPO_BRANCH=$(cat .github/resources/manifest-versions.json | jq .dspo )" >> $GITHUB_ENV
+          echo "DASHBOARD_BRANCH=$(cat .github/resources/manifest-versions.json | jq .dashboard )" >> $GITHUB_ENV
+          echo "NB_BRANCH=$(cat .github/resources/manifest-versions.json | jq .notebooks )" >> $GITHUB_ENV
+          echo "NB_CONTROLLER_BRANCH=$(cat .github/resources/manifest-versions.json | jq .notebook-controller )" >> $GITHUB_ENV
+          echo "KF_NB_CONTROLLER_BRANCH=$(cat .github/resources/manifest-versions.json | jq .kf-notebook-controller )" >> $GITHUB_ENV
+          echo "TRUSTYAI_BRANCH=$(cat .github/resources/manifest-versions.json | jq .trustyai )" >> $GITHUB_ENV
+          echo "MODEL_MESH_BRANCH =$(cat .github/resources/manifest-versions.json | jq .model-mesh )" >> $GITHUB_ENV
+          echo "ODH_MODEL_CONTROLLER_BRANCH=$(cat .github/resources/manifest-versions.json | jq .odh-model-controller )" >> $GITHUB_ENV
+          echo "KSERVE_BRANCH=$(cat .github/resources/manifest-versions.json | jq .kserve )" >> $GITHUB_ENV
+          echo "MODEL_REGISTRY_BRANCH=$(cat .github/resources/manifest-versions.json | jq .modelregistry )" >> $GITHUB_ENV
+      - name: Update versions
+        run: ./.github/scripts/update-manifests-tags.sh ${{ env.CODEFLARE_BRANCH }} ${{ env.KUBERAY_BRANCH }} ${{ env.KUEUE_BRANCH }} ${{ env.DSPO_BRANCH }} ${{ env.DASHBOARD_BRANCH }} ${{ env.KF_NB_CONTROLLER_BRANCH }} ${{ env.NB_CONTROLLER_BRANCH }} ${{ env.NB_BRANCH }} ${{ env.TRUSTYAI_BRANCH }} ${{ env.MODEL_MESH_BRANCH }} ${{ env.ODH_MODEL_CONTROLLER_BRANCH }} ${{ env.KSERVE_BRANCH }} ${{ env.MODEL_REGISTRY_BRANCH }}
+      - name: Create test pr
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "[DO NOT MERGE] Test ${{ env.VERSION }}  Release"
+          branch: odh-release/e2e-test
+          delete-branch: true
+          title: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
+      - name: Wait for checks to pass
+        run: ./.github/scripts/wait-for-checks.sh ${{ steps.cpr.outputs.pull-request-number }}
+      - name: Close PR
+        uses: peter-evans/close-pull@v3
+        with:
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          comment: Auto-closing pull request after success checks
+          delete-branch: true
+      - name: Pull tagged image
+        run: |
+          podman pull quay.io/ajaganat/opendatahub-operator:pr-23
+      - name: Push to quay.io with version
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: quay.io/ajaganat/opendatahub-operator
+          tags: ${{ env.VERSION }}
+          registry: quay.io
+          username: ajaganat
+          password: ${{ secrets.PODMAN_PASSWORD }}
