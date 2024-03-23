@@ -1,0 +1,68 @@
+name: "Update versions"
+on:
+  workflow_dispatch: 
+jobs:
+  create-e2e-test-pr:
+    permissions: write-all
+    name: Create e2e test pr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Read json and set env vars
+        run: |
+          echo "VERSION=$(cat .github/resources/manifest-versions.json | jq .version )" >> $GITHUB_ENV
+          echo "CODEFLARE_BRANCH=$(cat .github/resources/manifest-versions.json | jq .codeflare )" >> $GITHUB_ENV
+          echo "KUBERAY_BRANCH=$(cat .github/resources/manifest-versions.json | jq .kuberay )" >> $GITHUB_ENV
+          echo "KUEUE_BRANCH=$(cat .github/resources/manifest-versions.json | jq .kueue )" >> $GITHUB_ENV
+          echo "DSPO_BRANCH=$(cat .github/resources/manifest-versions.json | jq .dspo )" >> $GITHUB_ENV
+          echo "DASHBOARD_BRANCH=$(cat .github/resources/manifest-versions.json | jq .dashboard )" >> $GITHUB_ENV
+          echo "NB_BRANCH=$(cat .github/resources/manifest-versions.json | jq .notebooks )" >> $GITHUB_ENV
+          echo "NB_CONTROLLER_BRANCH=$(cat .github/resources/manifest-versions.json | jq .notebook-controller )" >> $GITHUB_ENV
+          echo "KF_NB_CONTROLLER_BRANCH=$(cat .github/resources/manifest-versions.json | jq .kf-notebook-controller )" >> $GITHUB_ENV
+          echo "TRUSTYAI_BRANCH=$(cat .github/resources/manifest-versions.json | jq .trustyai )" >> $GITHUB_ENV
+          echo "MODEL_MESH_BRANCH =$(cat .github/resources/manifest-versions.json | jq .model-mesh )" >> $GITHUB_ENV
+          echo "ODH_MODEL_CONTROLLER_BRANCH=$(cat .github/resources/manifest-versions.json | jq .odh-model-controller )" >> $GITHUB_ENV
+          echo "KSERVE_BRANCH=$(cat .github/resources/manifest-versions.json | jq .kserve )" >> $GITHUB_ENV
+          echo "MODEL_REGISTRY_BRANCH=$(cat .github/resources/manifest-versions.json | jq .modelregistry )" >> $GITHUB_ENV
+      - name: Update versions
+        run: |
+          update_tags(){
+            MANIFEST_STR=$(cat get_all_manifests.sh | grep $1 | sed 's/ //g')
+              readarray -d ":" -t STR_ARR <<< "$MANIFEST_STR"
+              RES=""
+              for i in "${!STR_ARR[@]}"; do
+                  if [ $i == 2 ]; then
+                      RES+=$2":"
+                  else
+                      RES+=${STR_ARR[$i]}":"
+                  fi
+              done
+              sed -i -r "s|.*$1.*|    ${RES::-2}|" get_all_manifests.sh
+          }
+          declare -A COMPONENT_VERSION_MAP=(
+              ["\"codeflare\""]=${{ env.CODEFLARE_BRANCH }}
+              ["\"ray\""]=${{ env.KUBERAY_BRANCH }}
+              ["\"kueue\""]=${{ env.KUEUE_BRANCH }}
+              ["\"data-science-pipelines-operator\""]=${{ env.DSPO_BRANCH }}
+              ["\"odh-dashboard\""]=${{ env.DASHBOARD_BRANCH }}
+              ["\"kf-notebook-controller\""]=${{ env.KF_NB_CONTROLLER_BRANCH }}
+              ["\"odh-notebook-controller\""]=${{ env.NB_CONTROLLER_BRANCH }}
+              ["\"notebooks\""]=${{ env.NB_BRANCH }}
+              ["\"trustyai\""]=${{ env.TRUSTYAI_BRANCH }}
+              ["\"model-mesh\""]=${{ env.MODEL_MESH_BRANCH }}
+              ["\"odh-model-controller\""]=${{ env.ODH_MODEL_CONTROLLER_BRANCH }}
+              ["\"kserve\""]=${{ env.KSERVE_BRANCH }}
+              ["\"modelregistry\""]=${{ env.MODEL_REGISTRY_BRANCH }}
+          )
+          for key in ${!COMPONENT_VERSION_MAP[@]}; do
+              update_tags ${key} ${COMPONENT_VERSION_MAP[${key}]}
+          done
+      - name: Create test pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "[DO NOT MERGE] Test ${{ env.VERSION }}  Release"
+          branch: odh-release/e2e-test
+          delete-branch: true
+          branch-suffix: short-commit-hash
+          title: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
