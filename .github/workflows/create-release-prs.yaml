@@ -1,0 +1,15 @@
+name: "Create PRs"
+on:
+  workflow_run:
+    workflows: ["Update versions"]
+    types: [completed]
+jobs:
+  create-release-prs:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Create release branches
+        run: |
+          echo "This is a successfull run"
+
+
