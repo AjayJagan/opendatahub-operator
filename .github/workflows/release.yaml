@@ -1,0 +1,13 @@
+name: Release ODH
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  release-odh:
+    if: github.event.pull_request.merged == true && startsWith( ${{ github.event.pull_request.title }}, 'ODH Release' ) && endsWith( ${{ github.event.pull_request.title }}, 'Version Update' )
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+        echo The PR was merged and now we can trigger a release branch creation
