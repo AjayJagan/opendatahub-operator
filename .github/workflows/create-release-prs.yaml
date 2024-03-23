@@ -1,0 +1,23 @@
+name: "Create PRs"
+on:
+  issue_comment:
+    types: [created]
+jobs:
+  create-release-prs:
+    name: Create release branch and prs
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/release-odh')
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.number }}
+    steps:
+      - name: Get branch of PR
+        uses: xt0rted/pull-request-comment-branch@v1
+        id: comment-branch
+      - name: print commit sha
+        run: |
+          echo ${{ steps.comment-branch.outputs.head_sha }}
+          echo ${{ github.event.comment.body }}
+          echo ${{ github.event.number }}
+          echo ${{ github.event.pull_request.number }}
+          echo ${{ env.PR_NUMBER }}
+          echo ${{ $PR_NUMBER }}
