@@ -66,7 +66,7 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-func init() { //nolint:gochecknoinits
+func init() {
 	//+kubebuilder:scaffold:scheme
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(dsci.AddToScheme(scheme))
@@ -93,7 +93,7 @@ func init() { //nolint:gochecknoinits
 	utilruntime.Must(monitoringv1.AddToScheme(scheme))
 }
 
-func main() { //nolint:funlen
+func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string

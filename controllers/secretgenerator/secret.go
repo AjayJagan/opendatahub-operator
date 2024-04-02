@@ -8,7 +8,6 @@ import (
 	"strconv"
 )
 
-//nolint:golint,revive,stylecheck //CAPS is preferred for const
 const (
 	SECRET_NAME_ANNOTATION         = "secret-generator.opendatahub.io/name"
 	SECRET_TYPE_ANNOTATION         = "secret-generator.opendatahub.io/type"
