@@ -9,5 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get version and trackerUrl from comments
-        run: |
-          echo "${{ github.event.pull_request.comments }}"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log(github.event)
+            const { data } = await github.event.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.pull_request.number }}
+            })
+            console.log(data)
