@@ -9,5 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get version and trackerUrl from comments
-        run: |
-          echo "${{ github.event.pull_request.comments }}"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.pulls.octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}/comments', {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.pull_request.number }},
+              headers: {
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Accept': 'application/vnd.github.text+json'
+              }
+            })
+            console.log(data)
