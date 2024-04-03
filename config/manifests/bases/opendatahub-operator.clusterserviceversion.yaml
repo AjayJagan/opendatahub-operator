@@ -102,7 +102,7 @@ spec:
   minKubeVersion: 1.22.0
   provider:
     name: ODH
-  replaces: opendatahub-operator.v2.9.0
+  replaces: opendatahub-operator.v2.10.0
   selector:
     matchLabels:
       component: opendatahub-operator
