@@ -7,7 +7,24 @@ jobs:
   release-odh:
     if: github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'ODH Release') && endsWith(github.event.pull_request.title, 'Version Update')
     runs-on: ubuntu-latest
+    env:
+      PR_NUM: ${{ github.event.pull_request.number }}
     steps:
       - name: Get version and trackerUrl from comments
-        run: |
-          echo "${{ github.event.pull_request.comments }}"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { PR_NUM } = process.env
+            github.request('GET /repos/{owner}/{repo}/pulls/{pull_number}/comments', {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: PR_NUM,
+              headers: {
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Accept': 'application/vnd.github.text+json'
+              }
+            }).then((data)=>{
+              console.log(data)
+            }).catch((e)=>{
+              console.log("Failed to get pr comments")
+            })
