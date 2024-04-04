@@ -9,30 +9,11 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Set env variables
-        uses: actions/github-script@v7
+        uses: ./.github/actions/set-shared-env
         with:
-          github-token: ${{ secrets.PAT }}
-          script: |
-            try{
-              async function getAndSetVariables(){
-                const { data:versionData } = await github.request('GET /repos/{owner}/{repo}/actions/variables/{name}', {
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: 'VERSION',
-                  headers: {
-                      'X-GitHub-Api-Version': '2022-11-28'
-                  }
-                })
-                console.log(versionData)
-                core.exportVariable('VERSION', versionData.value);
-              }
-              getAndSetVariables()
-            }catch(e){
-              console.log("Failed to retrieve variables:", e)
-            }
-      - name: Checkout branch
-        uses: actions/checkout@v4
+          pat-token: ${{ secrets.PAT }}
       - name: Update versions in relevant files
         run: |
           NEW_VERSION=${{ env.VERSION }}
@@ -43,6 +24,7 @@ jobs:
           sed -i -e "s|name: opendatahub-operator.v.*|name: opendatahub-operator.v$NEW_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
           sed -i -e "s|version: $CURRENT_VERSION.*|version: $NEW_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
           sed -i -e "s|replaces.*|replaces: opendatahub-operator.v$CURRENT_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
+          sed -i -e "s|olm.skipRange:.*|olm.skipRange: \'>=1.0.0 <$NEW_VERSION\'|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
       - name: Run make bundle
         run: make bundle
       - name: Clean up unwanted changes
