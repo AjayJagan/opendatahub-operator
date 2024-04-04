@@ -1,0 +1,16 @@
+name: "Set Shared env vars"
+description: "Gets repo env and sets in workflow env"
+inputs:
+   pat-token:
+     required: true
+     description: "A personal access token to read repo envs."
+runs:
+  using: "composite"
+  steps:
+  - name: Get and set env variables
+    uses: actions/github-script@v7
+    with:
+      github-token: ${{ inputs.pat-token }}
+      script: |
+        const script = require('./.github/scripts/update-variables.js')
+        script({github, context, core})
