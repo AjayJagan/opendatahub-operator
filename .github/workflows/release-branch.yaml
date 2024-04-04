@@ -1,0 +1,31 @@
+name: "Release: Create release branch"
+on:
+  pull_request:
+    types:
+      - closed
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+jobs:
+  create-release-branch:
+    permissions: 
+      pull-requests: write
+      contents: write
+    if: github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'ODH Release') && endsWith(github.event.pull_request.title, 'Version Update')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set env variables
+        uses: ./.github/actions/set-shared-env
+        with:
+          pat-token: ${{ secrets.PAT }}
+      - name: Create release branch
+        run: |
+          git checkout -b odh-${{ env.VERSION }}
+          git push -f origin odh-${{ env.VERSION }}
+      - name: Create release pr to release branch
+        uses: ./.github/actions/create-release-pr
+        with:
+          pr-branch: "odh-release/branch-update"
+          title: "ODH ${{ env.VERSION }} Release"
+          commit-message: "ODH ${{ env.VERSION }} Release"
+          # reviewers: "VaishnaviHire,zdtsw,AjayJagan" TODO
