@@ -1,7 +1,7 @@
-const { Octokit } = require("@octokit/action");
+// const { Octokit } = require("@octokit/action");
 
-module.exports = ({ core }) => {
-    const octokit = new Octokit();
+module.exports = ({ github, core }) => {
+    // const octokit = new Octokit();
     const { TRACKER_URL } = process.env
     
     const arr = TRACKER_URL.split("/")
@@ -9,7 +9,7 @@ module.exports = ({ core }) => {
     const repo = arr[4]
     const issue_number = arr[6]
 
-    octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+    github.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
         owner,
         repo,
         issue_number,
