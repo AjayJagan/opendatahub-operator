@@ -11,6 +11,7 @@ on:
         description: The URL to tracker issue.
         required: true
 env:
+  # GITHUB_TOKEN: ${{ secrets.PAT }}
   GITHUB_TOKEN: ${{ github.token }}
   VERSION: ${{ inputs.version }}
   TRACKER_URL: ${{ inputs.tracker-url }}
@@ -52,15 +53,7 @@ jobs:
             }catch(e){
               console.log("Failed to update the variables:", e)
             }
-      - uses: actions/checkout@v4
-      - name: call reusable workflow
-        uses: ./.github/actions/release-update-branch.yaml
-        with:
-          title: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
-          branch: "odh-release/e2e-test"
-          commit-message: "[DO NOT MERGE] Test ${{ env.VERSION }}  Release"
-          close-pr-and-push-tags: true
-      # - uses: actions/checkout@v4
+      # 
       # - name: Update branches in get_all_manifest.sh
       #   uses: actions/setup-node@v4
       #   with:
@@ -83,17 +76,29 @@ jobs:
       #     branch: odh-release/e2e-test
       #     delete-branch: true
       #     title: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
-      # - name: Wait for checks to pass
-      #   run: ./.github/scripts/wait-for-checks.sh ${{ steps.cpr.outputs.pull-request-number }}
-      # - name: Close PR
-      #   uses: peter-evans/close-pull@v3
-      #   with:
-      #     pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
-      #     comment: Auto-closing pull request after success checks
-      #     delete-branch: true
-      # - name: Push version tag to quay.io
-      #   run: |
-      #     # Need ODH creds
-      #     # podman login -u ajaganat -p ${{ secrets.PODMAN_PASSWORD }} quay.io/ajaganat
-      #     # podman pull quay.io/ajaganat/opendatahub-operator:pr-23
-      #     # podman push quay.io/ajaganat/opendatahub-operator:pr-23 quay.io/ajaganat/opendatahub-operator:${{ env.VERSION }}
+      #     base: "incubation"
+      - uses: actions/checkout@v4
+      - name: Create release pr
+        id: release-pr
+        uses: ./.github/actions/create-release-pr
+        with:
+          base-branch: "incubation"
+          pr-branch: "odh-release/e2e-test"
+          title: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
+          commit-message: "Test ${{ env.VERSION }} Release"
+          # token: ${{ env.GITHUB_TOKEN }}
+          # tracker-url: ${{ env.TRACKER_URL }}
+      - name: Wait for checks to pass
+        run: ./.github/scripts/wait-for-checks.sh ${{ env.PULL_REQUEST_NUMBER }}
+      - name: Close PR
+        uses: peter-evans/close-pull@v3
+        with:
+          pull-request-number: ${{ env.PULL_REQUEST_NUMBERr }}
+          comment: Auto-closing pull request after success checks
+          delete-branch: true
+      - name: Push version tag to quay.io
+        run: |
+          # Need ODH creds
+          # podman login -u ajaganat -p ${{ secrets.PODMAN_PASSWORD }} quay.io/ajaganat
+          # podman pull quay.io/ajaganat/opendatahub-operator:pr-23
+          # podman push quay.io/ajaganat/opendatahub-operator:pr-23 quay.io/ajaganat/opendatahub-operator:${{ env.VERSION }}

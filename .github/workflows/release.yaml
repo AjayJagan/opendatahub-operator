@@ -38,11 +38,10 @@ jobs:
             }catch(e){
               console.log("Failed to retrieve variables:", e)
             }
-      - uses: actions/checkout@v4
-      - name: call reusable workflow
-        uses: ./.github/actions/release-update-branch.yaml
-        with:
-          title: "ODH Release ${{ env.VERSION }}"
-          branch: "odh-release-branch"
-          commit-message: "ODH Release ${{ env.VERSION }}"
-          close-pr-and-push-tags: false
+      # - name: Create release pr
+      #   uses: ./.github/actions/create-release-pr
+      #   with:
+      #     base-branch: "odh"
+      #     pr-branch: "odh-release/e2e-test"
+      #     title: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
+      #     commit-message: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
