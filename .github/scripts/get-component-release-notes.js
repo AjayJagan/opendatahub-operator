@@ -15,20 +15,22 @@ module.exports = ({ github, core }) => {
             'Accept': 'application/vnd.github.text+json'
         }
     }).then((result) => {
+        const allowedComponents = ["dashboard", "notebooks", "notebook-controller", "trustyai", "kserve", "modelmesh-serving", "model-registry", "kueue", "codeflare", "kuberay", "dsp"]
+        let outputStr = "## Component Release Notes\n"
         result.data.forEach((issue) => {
             issueCommentBody = issue.body_text
             if (issueCommentBody.includes("#Release#")) {
                 let components = issueCommentBody.split("\n")
                 components = components.splice(2, components.length - 1)
                 components.forEach(component => {
-                    [componentName, branchUrl] = component.split("|")
-                    const splitArr = branchUrl.split("/")
-                    const idx = splitArr.indexOf("tree")
-                    const branchName = splitArr.slice(idx + 1).join("/")
-                    core.exportVariable(componentName.toUpperCase(), branchName);
+                    [componentName, branchUrl, tagUrl] = component.split("|")
+                    if(allowedComponents.includes(componentName)){
+                        outputStr += `- **${componentName.charAt(0).toUpperCase() + componentName.slice(1)}**: ${tagUrl}\n`
+                    }
                 })
             }
         })
+        core.setOutput('release-notes-body', outputStr);
     }).catch(e => {
         console.log("Failed to get branches", e)
     })
