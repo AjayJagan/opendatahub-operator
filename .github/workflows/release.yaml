@@ -5,44 +5,23 @@ on:
       - closed
 jobs:
   release-odh:
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
     if: github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'ODH Release') && endsWith(github.event.pull_request.title, 'Version Update')
     runs-on: ubuntu-latest
     steps:
-      - name: Set env variables
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.PAT }}
-          script: |
-            try{
-              async function getAndSetVariables(){
-                const { data: versionData } = await github.request('GET /repos/{owner}/{repo}/actions/variables/{name}', {
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: 'VERSION',
-                  headers: {
-                      'X-GitHub-Api-Version': '2022-11-28'
-                  }
-                })
-                const { data: trackerUrlData } = await github.request('GET /repos/{owner}/{repo}/actions/variables/{name}', {
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: 'TRACKER_URL',
-                  headers: {
-                      'X-GitHub-Api-Version': '2022-11-28'
-                  }
-                })
-                core.exportVariable('VERSION', versionData.value);
-                core.exportVariable('TRACKER_URL', trackerUrlData.value);
-              }
-              getAndSetVariables()
-            }catch(e){
-              console.log("Failed to retrieve variables:", e)
-            }
       - uses: actions/checkout@v4
-      - name: call reusable workflow
-        uses: ./.github/actions/release-update-branch.yaml
+      - name: Set env variables
+        uses: ./.github/actions/set-shared-env
         with:
-          title: "ODH Release ${{ env.VERSION }}"
-          branch: "odh-release-branch"
-          commit-message: "ODH Release ${{ env.VERSION }}"
-          close-pr-and-push-tags: false
+          pat-token: ${{ secrets.PAT }}
+      - name: Create release branch
+        run: |
+          git checkout -b odh-${{ env.VERSION }}
+      - name: Create release pr
+        uses: ./.github/actions/create-release-pr
+        with:
+          base-branch: "odh-${{ env.VERSION }}"
+          pr-branch: "odh-release"
+          title: "ODH ${{ env.VERSION }} Release"
+          commit-message: "ODH ${{ env.VERSION }} Release"
