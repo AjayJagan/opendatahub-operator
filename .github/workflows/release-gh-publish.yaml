@@ -1,0 +1,78 @@
+name: "Release: GH and operatorhub publish"
+on:
+  pull_request:
+    types:
+      - closed
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+jobs:
+  gh-operatorhub-release:
+    permissions: write-all
+    if: github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'ODH') && endsWith(github.event.pull_request.title, 'Release')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set env variables
+        uses: ./.github/actions/set-shared-env
+        with:
+          pat-token: ${{ secrets.PAT }}
+      - name: Create and push version tags
+        run: |
+          git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git config --global user.name github-actions[bot]
+          git checkout odh-${{ env.VERSION }}
+          git tag -a -m v${{ env.VERSION }} v${{ env.VERSION }}
+          git push origin v${{ env.VERSION }}
+      - name: Get component release notes
+        id: release-notes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const script = require('./.github/scripts/get-component-release-notes.js')
+            script({github, core})
+      - name: Create GH release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.release-notes.outputs.release-notes-body }}
+          tag_name: v${{ env.VERSION }}
+          generate_release_notes: true
+          append_body: true
+          make_latest: true
+  create-community-operators-pr:
+    needs: [gh-operatorhub-release]
+    name: Create community operators prod pr # https://github.com/redhat-openshift-ecosystem/community-operators-prod
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set env variables
+        uses: AjayJagan/opendatahub-operator/.github/actions/set-shared-env@incubation # Need to change to opendatahub-io/opendatahub-operator
+        with:
+          pat-token: ${{ secrets.PAT }}
+      - name: Checkout opendatahub-operator
+        uses: actions/checkout@v4
+        with:
+          path: ./opendatahub-operator
+          ref: odh-${{ env.VERSION }}
+      - name: Checkout redhat-openshift-ecosystem/community-operators-prod
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.NOTES_PAT }} # Will be replaced with a different token
+          repository: AjayJagan/community-operators-prod # replaced with redhat-openshift-ecosystem/community-operators-prod
+          path: ./community-operators-prod
+      - name: Copy bundle files and add annotation
+        run : |
+          cd community-operators-prod
+          mkdir -p community-operators-prod/operators/opendatahub-operator/${{ env.VERSION }}
+          cp -a ../opendatahub-operator/bundle/. operators/opendatahub-operator/${{ env.VERSION }}/
+          echo "
+            # OpenShift specific version
+            com.redhat.openshift.versions: v4.9" >> operators/opendatahub-operator/${{ env.VERSION }}/metadata/annotations.yaml
+          cat operators/opendatahub-operator/${{ env.VERSION }}/metadata/annotations.yaml
+      - name: Create communityoperators prod pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          path: ./community-operators-prod
+          token: ${{ secrets.NOTES_PAT }}
+          push-to-fork: AJ-odh-bot/community-operators-prod # bot account
+          commit-message: ODH Release v${{ env.VERSION }}
+          delete-branch: true
+          title: operator opendatahub-operator (${{ env.VERSION }})
