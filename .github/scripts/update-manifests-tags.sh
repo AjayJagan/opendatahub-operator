@@ -11,7 +11,6 @@ MANIFEST_STR=$(cat get_all_manifests.sh | grep $1 | sed 's/ //g')
             RES+=${STR_ARR[$i]}":"
         fi
     done
-    echo here
     echo "${RES::-2}"
     sed -i -r "s|.*$1.*|    ${RES::-2}|" get_all_manifests.sh
 }
