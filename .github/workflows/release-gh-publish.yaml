@@ -3,21 +3,21 @@ on:
   pull_request:
     types:
       - closed
-env:
-  GITHUB_TOKEN: ${{ github.token }}
 jobs:
   gh-release:
-    permissions:
-      pull-requests: write
-      contents: write
     if: github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'ODH') && endsWith(github.event.pull_request.title, 'Release')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Set env variables
         uses: ./.github/actions/set-shared-env
         with:
-          pat-token: ${{ secrets.PAT }}
+          pat-token: ${{ steps.generate-token.outputs.token }}
       - name: Create and push version tags
         run: |
           git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
@@ -45,10 +45,15 @@ jobs:
     name: Create community operators prod pr # https://github.com/redhat-openshift-ecosystem/community-operators-prod
     runs-on: ubuntu-latest
     steps:
-      - name: Set env variables
-        uses: AjayJagan/opendatahub-operator/.github/actions/set-shared-env@incubation # Need to change to opendatahub-io/opendatahub-operator
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
         with:
-          pat-token: ${{ secrets.PAT }}
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Set env variables
+        uses: opendatahub-io/opendatahub-operator/.github/actions/set-shared-env@incubation
+        with:
+          pat-token: ${{ steps.generate-token.outputs.token }}
       - name: Checkout opendatahub-operator
         uses: actions/checkout@v4
         with:
@@ -57,24 +62,27 @@ jobs:
       - name: Checkout redhat-openshift-ecosystem/community-operators-prod
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.NOTES_PAT }} # We need a token with repo rights
-          repository: AjayJagan/community-operators-prod # replaced with redhat-openshift-ecosystem/community-operators-prod
+          token: <PAT> # We need a token with repo rights
+          repository: redhat-openshift-ecosystem/community-operators-prod # replaced with redhat-openshift-ecosystem/community-operators-prod
           path: ./community-operators-prod
       - name: Copy bundle files and add annotation
         run : |
-          cd community-operators-prod
-          mkdir -p community-operators-prod/operators/opendatahub-operator/${{ env.VERSION }}
-          cp -a ../opendatahub-operator/bundle/. operators/opendatahub-operator/${{ env.VERSION }}/
-          echo "
-            # OpenShift specific version
-            com.redhat.openshift.versions: v4.9" >> operators/opendatahub-operator/${{ env.VERSION }}/metadata/annotations.yaml
-          sed -i -e "s|image: REPLACE_IMAGE:latest.*|image: quay.io/opendatahub/opendatahub-operator:v${{ env.VERSION }}|g"  operators/opendatahub-operator/${{ env.VERSION }}/manifests/opendatahub-operator.clusterserviceversion.yaml
-      - name: Create communityoperators prod pr
+          ls -la
+          # cd community-operators-prod
+          # mkdir -p community-operators-prod/operators/opendatahub-operator/${{ env.VERSION }}
+          # ls -la
+          # cp -a ../opendatahub-operator/bundle/. operators/opendatahub-operator/${{ env.VERSION }}/
+          # echo "
+          #   # OpenShift specific version
+          #   com.redhat.openshift.versions: v4.9" >> operators/opendatahub-operator/${{ env.VERSION }}/metadata/annotations.yaml
+          # sed -i -e "s|image: REPLACE_IMAGE:latest.*|image: quay.io/opendatahub/opendatahub-operator:v${{ env.VERSION }}|g"  operators/opendatahub-operator/${{ env.VERSION }}/manifests/opendatahub-operator.clusterserviceversion.yaml
+          # git status
+      - name: Create community operators prod pr
         uses: peter-evans/create-pull-request@v6
         with:
           path: ./community-operators-prod
-          token: ${{ secrets.NOTES_PAT }} # We need a token with repo rights
-          push-to-fork: AJ-odh-bot/community-operators-prod # Here we can fork community-operators-prod into opendatahub-io and use opendatahub-io/community-operators-prod. eg:https://github.com/maistra/community-operators-prod
+          token: <PAT> # We need a token with repo rights
+          push-to-fork: opendatahub-io/community-operators-prod # Here we can fork community-operators-prod into opendatahub-io and use opendatahub-io/community-operators-prod. eg:https://github.com/maistra/community-operators-prod
           commit-message: ODH Release v${{ env.VERSION }}
           delete-branch: true
           title: operator opendatahub-operator (${{ env.VERSION }})
