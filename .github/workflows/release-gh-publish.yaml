@@ -3,21 +3,26 @@ on:
   pull_request:
     types:
       - closed
-env:
-  GITHUB_TOKEN: ${{ github.token }}
+# env:
+#   GITHUB_TOKEN: ${{ github.token }}
 jobs:
   gh-release:
-    permissions:
-      pull-requests: write
-      contents: write
+    # permissions:
+    #   pull-requests: write
+    #   contents: write
     if: github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'ODH') && endsWith(github.event.pull_request.title, 'Release')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Set env variables
         uses: ./.github/actions/set-shared-env
         with:
-          pat-token: ${{ secrets.PAT }}
+          pat-token: ${{ steps.generate-token.outputs.token }}
       - name: Create and push version tags
         run: |
           git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
@@ -45,10 +50,15 @@ jobs:
     name: Create community operators prod pr # https://github.com/redhat-openshift-ecosystem/community-operators-prod
     runs-on: ubuntu-latest
     steps:
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Set env variables
         uses: AjayJagan/opendatahub-operator/.github/actions/set-shared-env@incubation # Need to change to opendatahub-io/opendatahub-operator
         with:
-          pat-token: ${{ secrets.PAT }}
+          pat-token: ${{ steps.generate-token.outputs.token }}
       - name: Checkout opendatahub-operator
         uses: actions/checkout@v4
         with:
@@ -57,8 +67,8 @@ jobs:
       - name: Checkout redhat-openshift-ecosystem/community-operators-prod
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.NOTES_PAT }} # We need a token with repo rights
-          repository: AjayJagan/community-operators-prod # replaced with redhat-openshift-ecosystem/community-operators-prod
+          token: ${{ steps.generate-token.outputs.token }} # We need a token with repo rights
+          repository: AJ-odh-bot/community-operators-prod # replaced with redhat-openshift-ecosystem/community-operators-prod
           path: ./community-operators-prod
       - name: Copy bundle files and add annotation
         run : |
@@ -73,8 +83,8 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           path: ./community-operators-prod
-          token: ${{ secrets.NOTES_PAT }} # We need a token with repo rights
-          push-to-fork: AJ-odh-bot/community-operators-prod # Here we can fork community-operators-prod into opendatahub-io and use opendatahub-io/community-operators-prod. eg:https://github.com/maistra/community-operators-prod
+          token: ${{ steps.generate-token.outputs.token }} # We need a token with repo rights
+          push-to-fork: AjayJagan/community-operators-prod # Here we can fork community-operators-prod into opendatahub-io and use opendatahub-io/community-operators-prod. eg:https://github.com/maistra/community-operators-prod
           commit-message: ODH Release v${{ env.VERSION }}
           delete-branch: true
           title: operator opendatahub-operator (${{ env.VERSION }})
