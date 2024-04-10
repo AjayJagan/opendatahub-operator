@@ -11,30 +11,36 @@ on:
         description: The URL to tracker issue.
         required: true
 env:
-  GITHUB_TOKEN: ${{ github.token }}
+  # GITHUB_TOKEN: ${{ github.token }}
   VERSION: ${{ inputs.version }}
   TRACKER_URL: ${{ inputs.tracker-url }}
 jobs:
   create-e2e-test-pr:
-    permissions:
-      pull-requests: write
-      contents: write
+    # permissions:
+    #   pull-requests: write
+    #   contents: write
     runs-on: ubuntu-latest
     name: Create e2e test pr and update image tags
     steps:
       - uses: actions/checkout@v4
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Validate semver
         run: ./.github/scripts/validate-semver.sh v${{ env.VERSION }}
       - name: Update repo variables
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.PAT }} # A personal access token with workflow+repo permissions
+          github-token: ${{ steps.generate-token.outputs.token }} # A personal access token with workflow+repo permissions
           script: |
             const script = require('./.github/scripts/update-variables.js')
             script({github, context, core})
       - name: Create test release pr
         uses: ./.github/actions/create-release-pr
         with:
+          token: ${{ steps.generate-token.outputs.token }}
           pr-branch: "odh-release/e2e-test"
           title: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
           commit-message: "Test ${{ env.VERSION }} Release"
@@ -43,6 +49,7 @@ jobs:
       - name: Close PR
         uses: peter-evans/close-pull@v3
         with:
+          token: ${{ steps.generate-token.outputs.token }}
           pull-request-number: ${{ env.PULL_REQUEST_NUMBER }}
           comment: Auto-closing pull request after success checks
           delete-branch: true

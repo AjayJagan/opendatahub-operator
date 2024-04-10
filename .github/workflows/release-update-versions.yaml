@@ -6,16 +6,21 @@ on:
 jobs:
   update-versions:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    permissions:
-      pull-requests: write
-      contents: write
+    # permissions:
+    #   pull-requests: write
+    #   contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Set env variables for actions
         uses: ./.github/actions/set-shared-env
         with:
-          pat-token: ${{ secrets.PAT }}
+          pat-token: ${{ steps.generate-token.outputs.token }}
       - name: Update versions in relevant files
         run: |
           NEW_VERSION=${{ env.VERSION }}
@@ -36,6 +41,7 @@ jobs:
       - name: Create version update pr
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ steps.generate-token.outputs.token }}
           commit-message: "ODH Release ${{ env.VERSION }}"
           branch: odh-release/version-update
           delete-branch: true
