@@ -6,17 +6,17 @@ set -euo pipefail
 
 sleep 10
 
-while $(gh pr checks "$1" | grep -q -v 'tide' | grep -q 'pending'); do
-  printf ":stopwatch: PR checks still pending, retrying in 10 seconds...\n"
-  sleep 10
+while $(gh pr checks "$1" | grep -v 'tide' | grep 'pending'); do
+  printf "PR checks still pending, retrying in 10 seconds...\n"
+  sleep 10 # To be changed to 600000(10 minutes)
 done
 
-if $(gh pr checks "$1" | grep -q 'fail'); then
+if $(gh pr checks "$1" | grep 'fail'); then
   printf "!!PR checks failed!!\n"
   exit 1
 fi
 
-if $(gh pr checks "$1" | grep  -q 'pass'); then
+if $(gh pr checks "$1" | grep 'pass'); then
   printf "!!PR checks passed!!\n"
   exit 0
 fi
