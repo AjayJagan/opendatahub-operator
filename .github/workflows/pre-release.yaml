@@ -49,8 +49,8 @@ jobs:
           delete-branch: true
       - name: Push version tag to quay.io
         run: |
-          skopeo login -u ${{ secrets.QUAY_ID }} -p ${{ secrets.QUAY_TOKEN }} quay.io/{{ secrets.QUAY_ORG }}
-          skopeo copy docker://quay.io/{{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ steps.cpr-dry-run.outputs.pull-request-number }} docker://quay.io/{{ secrets.QUAY_ORG }}/opendatahub-operator:${{ env.VERSION }}
+          # skopeo login -u ${{ secrets.QUAY_ID }} -p ${{ secrets.QUAY_TOKEN }} quay.io/{{ secrets.QUAY_ORG }}
+          # skopeo copy docker://quay.io/{{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ steps.cpr-dry-run.outputs.pull-request-number }} docker://quay.io/{{ secrets.QUAY_ORG }}/opendatahub-operator:${{ env.VERSION }}
           echo "Successfully updated tag to quay.io with version: ${{ env.VERSION }}"
   release-branch-pr:
     needs: dry-run-pr
@@ -69,15 +69,7 @@ jobs:
           git push -f origin odh-${{ env.VERSION }}
       - uses: ./.github/actions/update-manifest-branches
       - name: Update versions in relevant files
-        run: |
-          NEW_VERSION=${{ env.VERSION }}
-          CURRENT_VERSION=$(cat Makefile | grep -w "VERSION ?=" | cut -d ' ' -f 3)
-          sed -i -e "s/^VERSION ?=.*/VERSION ?= $NEW_VERSION/g" Makefile
-          sed -i -e "s|containerImage.*|containerImage: quay.io/opendatahub/opendatahub-operator:v$NEW_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
-          sed -i -e "s|createdAt.*|createdAt: \"$(date +"%Y-%-m-%dT00:00:00Z")\"|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
-          sed -i -e "s|name: opendatahub-operator.v.*|name: opendatahub-operator.v$NEW_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
-          sed -i -e "s|version: $CURRENT_VERSION.*|version: $NEW_VERSION|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
-          sed -i -e "s|olm.skipRange:.*|olm.skipRange: \'>=1.0.0 <$NEW_VERSION\'|g" config/manifests/bases/opendatahub-operator.clusterserviceversion.yaml
+        run: ./.github/scripts/update-versions.sh ${{ env.VERSION }}
       - name: Run make manifests & bundle
         run: make manifests bundle
       - name: Clean up
