@@ -20,7 +20,10 @@ module.exports = ({ github, core }) => {
             issueCommentBody = issue.body_text
             if (issueCommentBody.includes("#Release#")) {
                 let components = issueCommentBody.split("\n")
-                components = components.splice(2, components.length - 1)
+                console.log(components)
+                const releaseIdx = components.indexOf("#Release#")
+                console.log(releaseIdx)
+                components = components.splice(releaseIdx+2, components.length - 1)
                 components.forEach(component => {
                     [componentName, branchUrl] = component.split("|")
                     const splitArr = branchUrl.split("/")
