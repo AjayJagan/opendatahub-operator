@@ -20,6 +20,7 @@ module.exports = ({ github, core }) => {
             issueCommentBody = issue.body_text
             if (issueCommentBody.includes("#Release#")) {
                 let components = issueCommentBody.split("\n")
+                console.log("1. ",components)
                 const releaseIdx = components.indexOf("#Release#")
                 components = components.splice(releaseIdx + 1, components.length - 1)
                 const regex = /[A-Za-z-_0-9]+\|(https:\/\/github\.com\/.*tree.*){1}\|(https:\/\/github\.com\/.*releases.*){1}/gm;
