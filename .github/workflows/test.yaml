@@ -1,0 +1,50 @@
+name: "Test"
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: The version to update.
+        required: true
+      tracker-url:
+        type: string
+        description: The URL to tracker issue.
+        required: true
+env:
+  VERSION: ${{ inputs.version }}
+  TRACKER_URL: ${{ inputs.tracker-url }}
+jobs:
+  dry-run-pr:
+    runs-on: ubuntu-latest
+    name: Create dry-run pr and update tags
+    steps:
+      - uses: actions/checkout@v4
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.ODH_RELEASE_APP_ID }}
+          private_key: ${{ secrets.ODH_RELEASE_APP_PRIVATE_KEY }}
+      - name: Validate semver
+        run: ./.github/scripts/validate-semver.sh v${{ env.VERSION }}
+      - uses: ./.github/actions/update-manifest-branches
+      - name: Create dry-run pr
+        uses: peter-evans/create-pull-request@v6
+        id: cpr-dry-run
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          commit-message: "Test ${{ env.VERSION }} Release"
+          branch: odh-release/e2e-dry-run
+          delete-branch: true
+          title: "[DO NOT MERGE] Test ${{ env.VERSION }} Release"
+      - name: Wait for checks to pass
+        uses: poseidon/wait-for-status-checks@v0.4.1
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          ignore_pattern: "*.tide*"
+      - name: Close PR
+        uses: peter-evans/close-pull@v3
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          pull-request-number: ${{ steps.cpr-dry-run.outputs.pull-request-number }}
+          comment: Auto-closing pull request after success checks
+          delete-branch: true
