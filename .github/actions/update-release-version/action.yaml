@@ -43,4 +43,4 @@ runs:
     - name: Set pr number in output
       shell: bash
       run: |
-        echo "${{ steps.cpr.outputs.pull-request-number }}"" >> "$GITHUB_OUTPUT"        
+        echo "pull-request-number=${{ steps.cpr.outputs.pull-request-number }}" >> "$GITHUB_OUTPUT"
