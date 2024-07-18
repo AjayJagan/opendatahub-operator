@@ -16,7 +16,10 @@ inputs:
   branch-name:
     description: "Temporary branch to host the changes"
     required: true
-  
+outputs:
+  pull-request-number:
+    description: "Pull request number"
+    value: ${{ steps.cpr.outputs.pull-request-number }}
 runs:
   using: "composite"
   steps:
@@ -43,4 +46,4 @@ runs:
     - name: Set pr number in output
       shell: bash
       run: |
-        echo "${{ steps.cpr.outputs.pull-request-number }}"" >> "$GITHUB_OUTPUT"        
+        echo "pull-request-number=${{ steps.cpr.outputs.pull-request-number }}" >> "$GITHUB_OUTPUT"
