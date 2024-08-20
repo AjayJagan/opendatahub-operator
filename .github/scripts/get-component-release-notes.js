@@ -17,16 +17,21 @@ module.exports = ({ github, core }) => {
     }).then((result) => {
         let outputStr = "## Component Release Notes\n"
         result.data.forEach((issue) => {
-            issueCommentBody = issue.body_text
+            let issueCommentBody = issue.body_text
             if (issueCommentBody.includes("#Release#")) {
                 let components = issueCommentBody.split("\n")
                 const releaseIdx = components.indexOf("#Release#")
                 components = components.splice(releaseIdx + 1, components.length)
-                const regex = /\s*[A-Za-z-_0-9]+\s*\|\s*(https:\/\/github\.com\/.*tree.*){1}\s*\|\s*(https:\/\/github\.com\/.*releases.*){1}\s*/;
+                const regex = /\s*[A-Za-z-_0-9]+\s*\|\s*(https:\/\/github\.com\/.*(tree|releases).*){1}\s*\|?\s*(https:\/\/github\.com\/.*releases.*)?\s*/;
                 components.forEach(component => {
                     if (regex.test(component)) {
                         const [componentName, branchUrl, tagUrl] = component.split("|")
-                        outputStr += `- **${componentName.trim().charAt(0).toUpperCase() + componentName.trim().slice(1)}**: ${tagUrl.trim()}\n`
+                        let releaseNotesUrl = tagUrl
+                        if (!releaseNotesUrl) {
+                            console.log('here')
+                            releaseNotesUrl = branchUrl
+                        }
+                        outputStr += `- **${componentName.trim().charAt(0).toUpperCase() + componentName.trim().slice(1)}**: ${releaseNotesUrl.trim()}\n`
                     }
                 })
             }
