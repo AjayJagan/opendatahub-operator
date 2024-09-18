@@ -1,0 +1,15 @@
+name: "Pre release 1"
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  push-tags-and-create-release-prs:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    # && contains(github.event.comment.body, '/release-odh')
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+        echo ${{ github.event.pull_request.number }}
+        echo ${{ github.event.comment.body }}
