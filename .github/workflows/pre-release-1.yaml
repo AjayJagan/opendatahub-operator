@@ -1,0 +1,25 @@
+name: "Pre release 1"
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  push-tags-and-create-release-prs:
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == false && github.event.action == 'closed' && contains(github.event.pull_request.title, '[DO NOT MERGE] Test')
+    runs-on: ubuntu-latest
+    steps:
+    - name: check release comment
+      uses: peter-evans/find-comment@v3
+      id: release-comment
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        body-includes: /release-odh
+        direction: last
+    - name: "Evaluate release comment"
+      run: |
+        echo "${{ steps.release-comment.outputs.comment-body }}"
+        [ "${{ steps.release-comment.outputs.comment-body }}" == "/release-odh" ] && echo echo "Please add /release-odh comment while closing the pr && exit 1
+      shell: bash
+    - run: |
+        echo "next step"
