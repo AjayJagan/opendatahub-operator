@@ -1,0 +1,17 @@
+name: "Pre release 1"
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  push-tags-and-create-release-prs:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    # && contains(github.event.comment.body, '/release-odh')
+    runs-on: ubuntu-latest
+    steps:
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: |
+        echo "$GITHUB_CONTEXT"
