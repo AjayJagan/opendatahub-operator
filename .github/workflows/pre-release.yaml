@@ -49,8 +49,8 @@ jobs:
       - name: Push version tag to quay.io
         run: |
           skopeo login -u ${{ secrets.QUAY_ID }} -p ${{ secrets.QUAY_TOKEN }} quay.io
-          skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ steps.cpr-dry-run.outputs.pull-request-number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:${{ env.VERSION }}
-          echo "Successfully updated tag to quay.io with version: ${{ env.VERSION }}"
+          skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ steps.cpr-dry-run.outputs.pull-request-number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
+          echo "Successfully updated tag to quay.io with version: v${{ env.VERSION }}"
   release-branch-pr:
     needs: dry-run-pr
     runs-on: ubuntu-latest
