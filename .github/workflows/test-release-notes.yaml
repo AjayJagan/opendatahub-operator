@@ -1,0 +1,30 @@
+name: "Change log"
+on:
+  workflow_dispatch:
+permissions:
+  checks: read
+  pull-requests: write
+  contents: write
+env:
+  VERSION: ${{ inputs.version }}
+  TRACKER_URL: ${{ inputs.tracker-url }}
+  PREV_TAG: ${{ inputs.previous-tag }}
+jobs:
+  test-change-log:
+    runs-on: ubuntu-latest
+    name: test change log generation
+    steps:
+    - name: "test change log generation"
+      id: build_changelog
+      uses: mikepenz/release-changelog-builder-action@v5
+      with:
+        fromTag: "v2.10.0"
+        toTag: "v2.40.0"
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: print output
+      run: |
+        echo "${{ steps.build_changelog.outputs.changelog }}"
+        echo "${{ steps.build_changelog.outputs.repo }}"
+        echo "${{ steps.build_changelog.outputs.fromTag }}"
+        echo "${{ steps.build_changelog.outputs.toTag }}"
+        echo "${{ steps.build_changelog.outputs.contributors }}"

@@ -6,6 +6,10 @@ on:
         type: string
         description: The version to update(https://semver.org/).
         required: true
+      previous-tag:
+        type: string
+        description: The previous tag in gh
+        required: true
       tracker-url:
         type: string
         description: The URL to tracker issue(https://github.com/opendatahub-io/opendatahub-community/issues).
@@ -17,6 +21,7 @@ permissions:
 env:
   VERSION: ${{ inputs.version }}
   TRACKER_URL: ${{ inputs.tracker-url }}
+  PREV_TAG: ${{ inputs.previous-tag }}
 jobs:
   dry-run-pr:
     runs-on: ubuntu-latest
@@ -42,5 +47,6 @@ jobs:
             #Release#
             version=${{ env.VERSION }}
             tracker-url=${{ env.TRACKER_URL }}
+            previous-tag=${{ PREV_TAG }}
             :exclamation: DO NOT EDIT THIS COMMENT :exclamation:
           pr_number: ${{ steps.cpr-dry-run.outputs.pull-request-number }}
