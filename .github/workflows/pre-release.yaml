@@ -36,7 +36,7 @@ jobs:
     - name: Push version tag to quay.io
       run: |
         skopeo login -u ${{ secrets.QUAY_ID }} -p ${{ secrets.QUAY_TOKEN }} quay.io
-        skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ github.event.pull_request.number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
+        # skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ github.event.pull_request.number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
         echo "Successfully updated tag to quay.io with version: v${{ env.VERSION }}"
     - uses: actions/checkout@v4
     - name: Create version update pr in incubation
