@@ -36,18 +36,9 @@ jobs:
     - name: Push version tag to quay.io
       run: |
         skopeo login -u ${{ secrets.QUAY_ID }} -p ${{ secrets.QUAY_TOKEN }} quay.io
-        skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ github.event.pull_request.number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
+        # skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ github.event.pull_request.number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
         echo "Successfully updated tag to quay.io with version: v${{ env.VERSION }}"
     - uses: actions/checkout@v4
-    - name: Create version update pr in incubation
-      uses: ./.github/actions/update-release-version
-      with:
-        version: ${{ env.VERSION }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: "Update version to ${{ env.VERSION }}"
-        title: "Update version to ${{ env.VERSION }}"
-        branch-name: "odh-release/version-update"
-        base-branch: incubation
     - name: Create release branch
       run: |
         git checkout -b odh-${{ env.VERSION }}
@@ -63,6 +54,21 @@ jobs:
         title: "ODH Release ${{ env.VERSION }}: Version Update"
         branch-name: "odh-release/release-branch-update"
         base-branch: odh-${{ env.VERSION }}
+    - name: Restore
+      run: |
+        git restore .
+        git rev-parse --abbrev-ref HEAD
+        git branch
+        git checkout incubation
+    - name: Create version update pr in incubation
+      uses: ./.github/actions/update-release-version
+      with:
+        version: ${{ env.VERSION }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "Update version to ${{ env.VERSION }}"
+        title: "Update version to ${{ env.VERSION }}"
+        branch-name: "odh-release/version-update"
+        base-branch: incubation
     - name: Comment version and tracker url in the pr
       uses: thollander/actions-comment-pull-request@v2
       with:
