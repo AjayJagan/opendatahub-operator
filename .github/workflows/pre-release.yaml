@@ -36,7 +36,7 @@ jobs:
     - name: Push version tag to quay.io
       run: |
         skopeo login -u ${{ secrets.QUAY_ID }} -p ${{ secrets.QUAY_TOKEN }} quay.io
-        skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ github.event.pull_request.number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
+        # skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ github.event.pull_request.number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
         echo "Successfully updated tag to quay.io with version: v${{ env.VERSION }}"
     - uses: actions/checkout@v4
     - name: Create version update pr in incubation
@@ -47,29 +47,32 @@ jobs:
         commit-message: "Update version to ${{ env.VERSION }}"
         title: "Update version to ${{ env.VERSION }}"
         branch-name: "odh-release/version-update"
-        base-branch: incubation
-    - name: Create release branch
-      run: |
-        git checkout -b odh-${{ env.VERSION }}
-        git push -f origin odh-${{ env.VERSION }}
-    - uses: ./.github/actions/update-manifest-branches
-    - name: Create release pr in release branch
-      uses: ./.github/actions/update-release-version
-      id: cpr-release-pr
-      with:
-        version: ${{ env.VERSION }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: "ODH Release ${{ env.VERSION }}"
-        title: "ODH Release ${{ env.VERSION }}: Version Update"
-        branch-name: "odh-release/release-branch-update"
-        base-branch: odh-${{ env.VERSION }}
-    - name: Comment version and tracker url in the pr
-      uses: thollander/actions-comment-pull-request@v2
-      with:
-        message: |
-          #Release#
-          version=${{ env.VERSION }}
-          tracker-url=${{ env.TRACKER_URL }}
-          :exclamation: DO NOT EDIT THIS COMMENT :exclamation:
-        pr_number: ${{ steps.cpr-release-pr.outputs.pull-request-number }}
+        # base-branch: incubation
+    # - name: Create release branch
+    #   run: |
+    #     git checkout -b odh-${{ env.VERSION }}
+    #     git push -f origin odh-${{ env.VERSION }}
+    # - uses: actions/checkout@v4
+    #   with:
+    #     ref: odh-${{ env.VERSION }}
+    # - uses: ./.github/actions/update-manifest-branches
+    # - name: Create release pr in release branch
+    #   uses: ./.github/actions/update-release-version
+    #   id: cpr-release-pr
+    #   with:
+    #     version: ${{ env.VERSION }}
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     commit-message: "ODH Release ${{ env.VERSION }}"
+    #     title: "ODH Release ${{ env.VERSION }}: Version Update"
+    #     branch-name: "odh-release/release-branch-update"
+    #     # base-branch: odh-${{ env.VERSION }}
+    # - name: Comment version and tracker url in the pr
+    #   uses: thollander/actions-comment-pull-request@v2
+    #   with:
+    #     message: |
+    #       #Release#
+    #       version=${{ env.VERSION }}
+    #       tracker-url=${{ env.TRACKER_URL }}
+    #       :exclamation: DO NOT EDIT THIS COMMENT :exclamation:
+    #     pr_number: ${{ steps.cpr-release-pr.outputs.pull-request-number }}
     
