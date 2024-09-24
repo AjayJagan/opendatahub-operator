@@ -36,7 +36,7 @@ jobs:
     - name: Push version tag to quay.io
       run: |
         skopeo login -u ${{ secrets.QUAY_ID }} -p ${{ secrets.QUAY_TOKEN }} quay.io
-        skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ github.event.pull_request.number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
+        # skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ github.event.pull_request.number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
         echo "Successfully updated tag to quay.io with version: v${{ env.VERSION }}"
     - uses: actions/checkout@v4
     - name: Create version update pr in incubation
@@ -48,10 +48,14 @@ jobs:
         title: "Update version to ${{ env.VERSION }}"
         branch-name: "odh-release/version-update"
         base-branch: incubation
+    - name: Restore changes
+      run: git restore .
     - name: Create release branch
       run: |
         git checkout -b odh-${{ env.VERSION }}
         git push -f origin odh-${{ env.VERSION }}
+        echo "Current branch is"
+        git rev-parse --abbrev-ref HEAD
     - uses: ./.github/actions/update-manifest-branches
     - name: Create release pr in release branch
       uses: ./.github/actions/update-release-version
