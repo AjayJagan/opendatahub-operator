@@ -1,27 +1,52 @@
-function getModifiedComponentName(name){
-    let modifiedWord = name.split("-").join(" ").replace(/[^a-zA-Z ]/g, "").trim()
+function getModifiedComponentName(name) {
+    let modifiedWord = name.split("-").join(" ")
     modifiedWord = modifiedWord[0].toUpperCase() + modifiedWord.slice(1).toLowerCase()
     return modifiedWord.replace("Odh", "ODH")
 }
-module.exports = ({ github, core }) => {
-    const { TRACKER_URL } = process.env
+module.exports = async ({ github, core }) => {
+    const { TRACKER_URL, VERSION } = process.env
     console.log(`The TRACKER_URL is ${TRACKER_URL}`)
     const arr = TRACKER_URL.split("/")
     const owner = arr[3]
     const repo = arr[4]
     const issue_number = arr[6]
 
-    github.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-        owner,
-        repo,
-        issue_number,
-        headers: {
-            'X-GitHub-Api-Version': '2022-11-28',
-            'Accept': 'application/vnd.github.text+json'
-        }
-    }).then((result) => {
+    try {
+        const latestReleaseResult = await github.request('GET /repos/{owner}/{repo}/releases/latest', {
+            owner,
+            repo,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Accept': 'application/vnd.github.text+json'
+            }
+        })
+        console.log(latestReleaseResult)
+        const latestTag = latestReleaseResult.data["tag_name"]
+        console.log(`The current tag is: ${latestTag}`)
+
+        const releaseNotesResult = await github.request('POST /repos/{owner}/{repo}/releases/generate-notes', {
+            owner,
+            repo,
+            tag_name: VERSION,
+            previous_tag_name: latestTag,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Accept': 'application/vnd.github.text+json'
+            }
+        })
+        console.log(releaseNotesResult)
+        const releaseNotesString = releaseNotesResult.data["body"]
+        const commentsResult = await github.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+            owner,
+            repo,
+            issue_number,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Accept': 'application/vnd.github.text+json'
+            }
+        })
         let outputStr = "## Component Release Notes\n"
-        result.data.forEach((issue) => {
+        commentsResult.data.forEach((issue) => {
             let issueCommentBody = issue.body_text
             if (issueCommentBody.includes("#Release#")) {
                 let components = issueCommentBody.split("\n")
@@ -31,17 +56,18 @@ module.exports = ({ github, core }) => {
                 components.forEach(component => {
                     if (regex.test(component)) {
                         let [componentName, branchUrl, tagUrl] = component.split("|")
-                        componentName = getModifiedComponentName(componentName.trim())
+                        componentName = componentName.trim()
                         const releaseNotesUrl = (tagUrl || branchUrl).trim();
-                        if(!outputStr.includes(componentName)) outputStr += `- **${componentName}**: ${releaseNotesUrl}\n`
-        
+                        outputStr += `- **${getModifiedComponentName(componentName)}**: ${releaseNotesUrl}\n`
+
                     }
                 })
             }
         })
+        outputStr += releaseNotesString
         console.log("Created component release notes successfully...")
         core.setOutput('release-notes-body', outputStr);
-    }).catch(e => {
-        core.setFailed(`Action failed with error ${e}`);
-    })
+    } catch (error) {
+        core.setFailed(`Action failed with error ${error}`);
+    }
 }
