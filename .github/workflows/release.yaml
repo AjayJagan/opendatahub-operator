@@ -35,7 +35,7 @@ jobs:
         with:
           script: |
             const script = require('./.github/scripts/get-component-release-notes.js')
-            script({github, core})
+            await script({github, core})
       - name: Create GH release
         uses: softprops/action-gh-release@v2
         with:
