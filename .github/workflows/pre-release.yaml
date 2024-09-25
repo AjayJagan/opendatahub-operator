@@ -3,7 +3,6 @@ on:
   pull_request:
     types:
       - closed
-
 jobs:
   push-tags-and-create-release-prs:
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == false && github.event.action == 'closed' && contains(github.event.pull_request.title, '[DO NOT MERGE] Test')
@@ -23,7 +22,7 @@ jobs:
           exit 1
         fi
       shell: bash
-    - name: Get release data
+    - name: Get release data from comment
       uses: peter-evans/find-comment@v3
       id: release-data
       with:
@@ -36,6 +35,7 @@ jobs:
     - name: Push version tag to quay.io
       run: |
         skopeo login -u ${{ secrets.QUAY_ID }} -p ${{ secrets.QUAY_TOKEN }} quay.io
+        # TODO:
         # skopeo copy docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:pr-${{ github.event.pull_request.number }} docker://quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator:v${{ env.VERSION }}
         echo "Successfully updated tag to quay.io with version: v${{ env.VERSION }}"
     - uses: actions/checkout@v4
@@ -50,6 +50,8 @@ jobs:
         base-branch: incubation
     - name: Create release branch
       run: |
+        git fetch origin incubation:incubation
+        git checkout incubation
         git checkout -b odh-${{ env.VERSION }}
         git push -f origin odh-${{ env.VERSION }}
     - uses: ./.github/actions/update-manifest-branches
