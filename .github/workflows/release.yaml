@@ -34,16 +34,18 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const script = require('./.github/scripts/get-component-release-notes.js')
-            script({github, core})
-      - name: Create GH release
-        uses: softprops/action-gh-release@v2
-        with:
-          body: ${{ steps.release-notes.outputs.release-notes-body }}
-          tag_name: v${{ env.VERSION }}
-          generate_release_notes: true
-          append_body: true
-          make_latest: true
+            # const script = require('./.github/scripts/get-component-release-notes.js')
+            # await script({github, core})
+            const script = require('./.github/scripts/test.js')
+            await script({github, core})
+      # - name: Create GH release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     body: ${{ steps.release-notes.outputs.release-notes-body }}
+      #     tag_name: v${{ env.VERSION }}
+          # generate_release_notes: true
+          # append_body: true
+          # make_latest: true
   # To be enabled later.
   # create-community-operators-pr:
   #   needs: [gh-release]
