@@ -1,0 +1,25 @@
+name: "Test pr in odh.io"
+on:
+  workflow_dispatch:
+permissions:
+  pull-requests: write
+  contents: write
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout opendatahub.io
+        uses: actions/checkout@v4
+        with:
+          repository: AjayJagan/opendatahub.io
+      - name: change something
+        run: |
+          touch test.yaml
+          echo "Hello" > test.yaml
+      - name: Create pr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: my first commit
+          delete-branch: true
+          title: This is a test PR
+          branch: testbranch
