@@ -3,6 +3,43 @@ function getModifiedComponentName(name) {
     modifiedWord = modifiedWord[0].toUpperCase() + modifiedWord.slice(1).toLowerCase()
     return modifiedWord.replace("Odh", "ODH")
 }
+
+function getComponentVersion(url) {
+    const splitArr = url.trim().split("/")
+    let idx = null
+    if (splitArr.includes("tag")) {
+        idx = splitArr.indexOf("tag")
+    } else if (splitArr.includes("tree")) {
+        idx = splitArr.indexOf("tree")
+    }
+    const releaseName = splitArr.slice(idx + 1).join("/")
+    const semverRegex = /\bv?\d+\.\d+\.\d+\b/;
+    const match = releaseName.match(semverRegex);
+    return match ? match[0] : null;
+}
+
+function createMarkdownTable(array){
+    if (!array.length) return '';
+
+    const colWidths = array[0].map((_, colIndex) => 
+        Math.max(...array.map(row => String(row[colIndex]).length))
+    );
+
+    const header = array[0].map((header, index) => 
+        header.toString().padEnd(colWidths[index])
+    ).join(' | ');
+
+    const separator = colWidths.map(width => '-'.repeat(width)).join(' | ');
+
+    const rows = array.slice(1).map(row => 
+        row.map((cell, index) => 
+            cell.toString().padEnd(colWidths[index])
+        ).join(' | ')
+    );
+
+    return [header, separator, ...rows].join('\n');
+}
+
 module.exports = async ({ github, core, context }) => {
     const { TRACKER_URL: trackerUrl, VERSION: currentTag } = process.env
     console.log(`The TRACKER_URL is ${trackerUrl}`)
@@ -45,6 +82,7 @@ module.exports = async ({ github, core, context }) => {
             }
         })
         let outputStr = "## Component Release Notes\n"
+        const releaseNotesArray = [["Technology", "Version"]]
         commentsResult.data.forEach((issue) => {
             let issueCommentBody = issue.body_text
             if (issueCommentBody.includes("#Release#")) {
@@ -57,15 +95,20 @@ module.exports = async ({ github, core, context }) => {
                         let [componentName, branchUrl, tagUrl] = component.split("|")
                         componentName = getModifiedComponentName(componentName.trim())
                         const releaseNotesUrl = (tagUrl || branchUrl).trim();
-                        if (!outputStr.includes(componentName)) outputStr += `- **${componentName}**: ${releaseNotesUrl}\n`
+                        if (!outputStr.includes(componentName)) {
+                            outputStr += `- **${componentName}**: ${releaseNotesUrl}\n`
+                            releaseNotesArray.push([componentName, getComponentVersion(releaseNotesUrl)])
+                        }
 
                     }
                 })
             }
         })
+
         outputStr += "\n" + releaseNotesString
         console.log("Created component release notes successfully...")
         core.setOutput('release-notes-body', outputStr);
+        core.setOutput('release-notes-markdown', createMarkdownTable(releaseNotesArray))
     } catch (error) {
         core.setFailed(`Action failed with error ${error}`);
     }
