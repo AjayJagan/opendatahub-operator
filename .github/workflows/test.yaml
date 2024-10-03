@@ -1,0 +1,74 @@
+name: "Test pr in odh.io"
+on:
+  workflow_dispatch:
+permissions:
+  pull-requests: write
+  contents: write
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout opendatahub.io
+        uses: actions/checkout@v4
+        with:
+          repository: AjayJagan/opendatahub.io
+      - uses: actions/create-github-app-token@v1
+        id: generate-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: AjayJagan
+          repositories: opendatahub.io
+      - name: test md
+        id: table
+        uses: actions/github-script@v7
+        with:
+          script: |
+            function arrayToMarkdownTable(array) {
+              if (!array.length) return '';
+
+                // Determine column widths
+                const colWidths = array[0].map((_, colIndex) => 
+                Math.max(...array.map(row => String(row[colIndex]).length))
+              );
+
+              // Create the header row
+              const header = array[0].map((header, index) => 
+                  header.toString().padEnd(colWidths[index])
+              ).join(' | ');
+
+              // Create the separator row
+              const separator = colWidths.map(width => '-'.repeat(width)).join(' | ');
+
+              // Create the data rows
+              const rows = array.slice(1).map(row => 
+                  row.map((cell, index) => 
+                      cell.toString().padEnd(colWidths[index])
+                  ).join(' | ')
+              );
+
+              // Combine header, separator, and rows into a complete table
+              return [header, separator, ...rows].join('\n');
+            }
+
+            const data = [
+                ['Technology', 'Version'],
+                ['Opendatahub operator', 'V2.18.0'],
+                ['odh dashboard','v1.18'],
+                ['model reg','v10.1.11']
+            ];
+            core.setOutput("MD", `\n ### Open Data Hub version\n${arrayToMarkdownTable(data)}\n`);
+      - name: change something
+        run: |
+          LINE_NUMBER=$(awk '/###/{ print NR-1; exit }' ./src/content/docs/release-notes.md)
+          sed -i "${LINE_NUMBER}r /dev/stdin" ./src/content/docs/release-notes.md <<EOF
+          ${{ steps.table.outputs.MD }}
+          EOF
+      - name: Create pr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          commit-message: my first commit
+          delete-branch: true
+          title: This is a test PR
+          branch: testbranch
