@@ -11,6 +11,8 @@ jobs:
   gh-release:
     if: github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'ODH Release') && endsWith(github.event.pull_request.title, 'Version Update')
     runs-on: ubuntu-latest
+    outputs:
+      release-notes: ${{ steps.release-notes.outputs.release-notes-markdown }}
     steps:
       - uses: actions/checkout@v4
       - name: Get release data from pr
@@ -42,6 +44,13 @@ jobs:
           body: ${{ steps.release-notes.outputs.release-notes-body }}
           tag_name: v${{ env.VERSION }}
           make_latest: true
+  opendatahub-io-release-notes:
+    runs-on: ubuntu-latest
+    needs: gh-release
+    steps:
+      - env:
+          RN: ${{ needs.gh-release.outputs.release-notes }}
+        run: echo "$RN"
   # TODO: To be enabled later.
   # create-community-operators-pr:
   #   needs: [gh-release]
