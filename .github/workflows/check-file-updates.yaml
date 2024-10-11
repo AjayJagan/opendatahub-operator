@@ -5,6 +5,7 @@ jobs:
   file-updates:
     permissions:
       pull-requests: write
+      contents: write
     name: Ensure generated files are included
     runs-on: ubuntu-latest
     steps:
