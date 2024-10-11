@@ -79,12 +79,7 @@ type Components struct {
 
 	// TrustyAI component configuration.
 	TrustyAI trustyai.TrustyAI `json:"trustyai,omitempty"`
-
-	// ModelRegistry component configuration.
-	ModelRegistry modelregistry.ModelRegistry `json:"modelregistry,omitempty"`
-
-	//Training Operator component configuration.
-	TrainingOperator trainingoperator.TrainingOperator `json:"trainingoperator,omitempty"`
+	
 }
 
 // ComponentsStatus defines the custom status of DataScienceCluster components.
