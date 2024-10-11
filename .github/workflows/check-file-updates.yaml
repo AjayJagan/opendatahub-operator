@@ -1,6 +1,6 @@
 name: Check config and readme updates
 on:
-  pull_request:
+  pull_request_target:
 jobs:
   file-updates:
     permissions:
@@ -9,12 +9,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: test
+        run: |
+          cat .github/workflows/check-file-updates.yaml
+      - name: test
+        run: |
+          make generate manifests api-docs
+          git status
       - name: Generate files
         id: generate-files
         run: |
           CMD="make generate manifests api-docs"
           $CMD
           echo "CMD=$CMD" >> $GITHUB_OUTPUT
+      - name: test another
+        run: |
+          echo "${{ github.event.pull_request.number }}"
       - name: Ensure generated files are up-to-date
         id: check_generated_files
         run : |
