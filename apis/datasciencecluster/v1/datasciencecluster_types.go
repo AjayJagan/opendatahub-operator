@@ -33,7 +33,6 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/components/modelmeshserving"
 	"github.com/opendatahub-io/opendatahub-operator/v2/components/modelregistry"
 	"github.com/opendatahub-io/opendatahub-operator/v2/components/ray"
-	"github.com/opendatahub-io/opendatahub-operator/v2/components/trainingoperator"
 	"github.com/opendatahub-io/opendatahub-operator/v2/components/trustyai"
 	"github.com/opendatahub-io/opendatahub-operator/v2/components/workbenches"
 	"github.com/opendatahub-io/opendatahub-operator/v2/controllers/status"
@@ -82,9 +81,6 @@ type Components struct {
 
 	// ModelRegistry component configuration.
 	ModelRegistry modelregistry.ModelRegistry `json:"modelregistry,omitempty"`
-
-	//Training Operator component configuration.
-	TrainingOperator trainingoperator.TrainingOperator `json:"trainingoperator,omitempty"`
 }
 
 // ComponentsStatus defines the custom status of DataScienceCluster components.

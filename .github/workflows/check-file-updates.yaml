@@ -27,6 +27,9 @@ jobs:
             echo "No new files to commit"
             echo "missing_generated_files=false" >> $GITHUB_OUTPUT
           fi
+      - name: test pr number
+        run: |
+          echo "${{github.event.number}}"
       - name: Report issue in PR
         if: ${{ steps.check_generated_files.outputs.missing_generated_files == 'true' }}
         uses: thollander/actions-comment-pull-request@v2
@@ -37,6 +40,7 @@ jobs:
                 Please run `${{ steps.generate-files.outputs.CMD }}` and commit the changes.
 
               For more info: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          pr_number: ${{github.event.number}}
       - name: Print git status and fail pr
         if: ${{ steps.check_generated_files.outputs.missing_generated_files == 'true' }}
         run: |
