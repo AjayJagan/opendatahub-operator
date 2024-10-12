@@ -1,6 +1,7 @@
 name: Check config and readme updates
 on:
-  pull_request:
+  pull_request_target:
+    types: [opened]
 jobs:
   file-updates:
     permissions:
@@ -37,6 +38,7 @@ jobs:
                 Please run `${{ steps.generate-files.outputs.CMD }}` and commit the changes.
 
               For more info: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Print git status and fail pr
         if: ${{ steps.check_generated_files.outputs.missing_generated_files == 'true' }}
         run: |
