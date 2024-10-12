@@ -1,6 +1,7 @@
 name: Check config and readme updates
 on:
-  pull_request:
+  pull_request_target:
+    types: [opened]
 jobs:
   file-updates:
     permissions:
@@ -9,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: 'AjayJagan/opendatahub-operator'
       - name: Generate files
         id: generate-files
         run: |
@@ -37,6 +40,7 @@ jobs:
                 Please run `${{ steps.generate-files.outputs.CMD }}` and commit the changes.
 
               For more info: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Print git status and fail pr
         if: ${{ steps.check_generated_files.outputs.missing_generated_files == 'true' }}
         run: |
