@@ -1,6 +1,6 @@
 module github.com/opendatahub-io/opendatahub-operator/v2
 
-go 1.22.0
+go 1.23.0
 
 require (
 	github.com/blang/semver/v4 v4.0.0
@@ -78,7 +78,7 @@ require (
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rhobs/obo-prometheus-operator/pkg/apis/monitoring v0.61.1-rhobs1 // indirect
-	github.com/sirupsen/logrus v1.9.2 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
@@ -101,6 +101,7 @@ require (
 )
 
 replace (
+	github.com/opendatahub-io/opendatahub-operator/v2/cmd/tools => ./cmd/tools
 	k8s.io/api => k8s.io/api v0.28.4
 	k8s.io/client-go => k8s.io/client-go v0.28.4
 )
