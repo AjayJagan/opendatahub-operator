@@ -1,0 +1,175 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: e2e-test-pipeline
+spec:
+  description: |
+    Provisions an ephemeral cluster, deploys operator using Makefile, then runs E2E tests.
+  params:
+    - name: GIT_REPO
+      type: string
+      default: https://github.com/AjayJagan/opendatahub-operator.git
+    - name: GIT_REVISION
+      type: string
+      default: e2e-konflux
+    - name: NAMESPACE
+      type: string
+      default: default
+
+  workspaces:
+    - name: shared-workspace
+
+  tasks:
+    - name: provision-eaas-space
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/konflux-ci/build-definitions.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/eaas-provision-space/0.1/eaas-provision-space.yaml
+      params:
+        - name: ownerName
+          value: $(context.pipelineRun.name)
+        - name: ownerUid
+          value: $(context.pipelineRun.uid)
+
+    - name: provision-cluster
+      runAfter:
+        - provision-eaas-space
+      taskSpec:
+        results:
+          - name: clusterName
+            value: "$(steps.create-cluster.results.clusterName)"
+        steps:
+          - name: get-supported-versions
+            ref:
+              resolver: git
+              params:
+                - name: url
+                  value: https://github.com/konflux-ci/build-definitions.git
+                - name: revision
+                  value: main
+                - name: pathInRepo
+                  value: stepactions/eaas-get-supported-ephemeral-cluster-versions/0.1/eaas-get-supported-ephemeral-cluster-versions.yaml
+            params:
+              - name: eaasSpaceSecretRef
+                value: $(tasks.provision-eaas-space.results.secretRef)
+
+          - name: pick-version
+            ref:
+              resolver: git
+              params:
+                - name: url
+                  value: https://github.com/konflux-ci/build-definitions.git
+                - name: revision
+                  value: main
+                - name: pathInRepo
+                  value: stepactions/eaas-get-latest-openshift-version-by-prefix/0.1/eaas-get-latest-openshift-version-by-prefix.yaml
+            params:
+              - name: prefix
+                value: "$(steps.get-supported-versions.results.versions[0])."
+
+          - name: create-cluster
+            ref:
+              resolver: git
+              params:
+                - name: url
+                  value: https://github.com/konflux-ci/build-definitions.git
+                - name: revision
+                  value: main
+                - name: pathInRepo
+                  value: stepactions/eaas-create-ephemeral-cluster-hypershift-aws/0.1/eaas-create-ephemeral-cluster-hypershift-aws.yaml
+            params:
+              - name: eaasSpaceSecretRef
+                value: $(tasks.provision-eaas-space.results.secretRef)
+              - name: version
+                value: "$(steps.pick-version.results.version)"
+
+    - name: deploy-operator
+      runAfter:
+        - provision-cluster
+      params:
+        - name: git-url
+          value: "$(params.GIT_REPO)"
+        - name: git-rev
+          value: "$(params.GIT_REVISION)"
+        - name: namespace
+          value: "$(params.NAMESPACE)"
+      taskSpec:
+        params:
+          - name: git-url
+            type: string
+          - name: git-rev
+            type: string
+          - name: namespace
+            type: string
+        workspaces:
+          - name: source
+        volumes:
+          - name: credentials
+            emptyDir: {}
+        steps:
+          - name: get-kubeconfig
+            ref:
+              resolver: git
+              params:
+                - name: url
+                  value: https://github.com/konflux-ci/build-definitions.git
+                - name: revision
+                  value: main
+                - name: pathInRepo
+                  value: stepactions/eaas-get-ephemeral-cluster-credentials/0.1/eaas-get-ephemeral-cluster-credentials.yaml
+            params:
+              - name: eaasSpaceSecretRef
+                value: $(tasks.provision-eaas-space.results.secretRef)
+              - name: clusterName
+                value: "$(tasks.provision-cluster.results.clusterName)"
+              - name: credentials
+                value: credentials
+
+          - name: clone-repo
+            image: alpine/git
+            script: |
+              git clone $(params.git-url) /workspace/source
+              cd /workspace/source
+              git checkout $(params.git-rev)
+
+          - name: make-deploy
+            image: registry.access.redhat.com/ubi8/make-tool
+            env:
+              - name: KUBECONFIG
+                value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
+            workingDir: /workspace/source
+            volumeMounts:
+              - name: credentials
+                mountPath: /credentials
+            script: |
+              make deploy IMG=quay.io/ajaganat/opendatahub-operator:latest NAMESPACE=opendatahub-operator-system
+
+    - name: run-e2e-tests
+      runAfter:
+        - deploy-operator
+      taskSpec:
+        params:
+          - name: namespace
+            type: string
+        workspaces:
+          - name: source
+        volumes:
+          - name: credentials
+            emptyDir: {}
+        steps:
+          - name: make-e2e
+            image: registry.access.redhat.com/ubi8/make-tool
+            env:
+              - name: KUBECONFIG
+                value: "/credentials/$(tasks.deploy-operator.steps.get-kubeconfig.results.kubeconfig)"
+            workingDir: /workspace/source
+            volumeMounts:
+              - name: credentials
+                mountPath: /credentials
+            script: |
+              make e2e-test
