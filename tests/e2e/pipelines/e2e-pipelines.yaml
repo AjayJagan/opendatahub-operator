@@ -4,19 +4,34 @@ metadata:
   name: e2e-test-pipeline
 spec:
   description: |
-    Provisions an ephemeral cluster and runs make deploy and make e2e from a Git repo.
+    Provisions an ephemeral cluster, deploys operator using Makefile, then runs E2E tests.
   params:
+    - description: Snapshot of the application
+      name: SNAPSHOT
+      default: '{"components": [{"name":"test-app", "containerImage": "quay.io/example/repo:latest"}]}'
     - name: GIT_REPO
       type: string
-      default: https://github.com/AjayJagan/opendatahub-operator.git
+      default: https://github.com/opendatahub-io/opendatahub-operator.git
     - name: GIT_REVISION
       type: string
-      default: e2e-konflux
+      default: main
     - name: NAMESPACE
       type: string
-      default: default
-
+      default: opendatahub-operator-system
   tasks:
+    - name: parse-metadata
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/konflux-ci/integration-examples
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: tasks/test_metadata.yaml
+      params:
+        - name: SNAPSHOT
+          value: $(params.SNAPSHOT)
     - name: provision-eaas-space
       taskRef:
         resolver: git
@@ -54,6 +69,7 @@ spec:
             params:
               - name: eaasSpaceSecretRef
                 value: $(tasks.provision-eaas-space.results.secretRef)
+
           - name: pick-version
             ref:
               resolver: git
@@ -67,6 +83,7 @@ spec:
             params:
               - name: prefix
                 value: "$(steps.get-supported-versions.results.versions[0])."
+
           - name: create-cluster
             ref:
               resolver: git
@@ -82,69 +99,35 @@ spec:
                 value: $(tasks.provision-eaas-space.results.secretRef)
               - name: version
                 value: "$(steps.pick-version.results.version)"
+              - name: instanceType
+                value: m5.2xlarge
 
-    - name: deploy-operator
+    - name: deploy-and-test-operator
       runAfter:
         - provision-cluster
+      params:
+        - name: git-url
+          value: "$(params.GIT_REPO)"
+        - name: git-rev
+          value: "$(params.GIT_REVISION)"
+        - name: namespace
+          value: "$(params.NAMESPACE)"
+        - name: operator-image
+          value: "$(tasks.parse-metadata.results.component-container-image)"
       taskSpec:
         params:
-          - name: GIT_REPO
-          - name: GIT_REVISION
-          - name: NAMESPACE
-        steps:
-          - name: clone-repo
-            image: alpine/git
-            script: |
-              #!/bin/sh
-              git clone $(params.GIT_REPO) --branch $(params.GIT_REVISION) repo
-
-          - name: get-kubeconfig
-            ref:
-              resolver: git
-              params:
-                - name: url
-                  value: https://github.com/konflux-ci/build-definitions.git
-                - name: revision
-                  value: main
-                - name: pathInRepo
-                  value: stepactions/eaas-get-ephemeral-cluster-credentials/0.1/eaas-get-ephemeral-cluster-credentials.yaml
-            params:
-              - name: eaasSpaceSecretRef
-                value: $(tasks.provision-eaas-space.results.secretRef)
-              - name: clusterName
-                value: "$(tasks.provision-cluster.results.clusterName)"
-              - name: credentials
-                value: credentials
-
-          - name: make-deploy
-            image: quay.io/operator-framework/operator-sdk:latest
-            workingDir: /repo
-            volumeMounts:
-              - name: credentials
-                mountPath: /credentials
-            script: |
-              #!/bin/sh
-              export KUBECONFIG=/credentials/kubeconfig
-              cd repo
-              make deploy IMG=quay.io/opendatahub/opendatahub-operator:v2.28.0
+          - name: git-url
+            type: string
+          - name: git-rev
+            type: string
+          - name: namespace
+            type: string
+          - name: operator-image
+            type: string
         volumes:
           - name: credentials
             emptyDir: {}
-
-    - name: run-e2e-tests
-      runAfter:
-        - deploy-operator
-      taskSpec:
-        params:
-          - name: GIT_REPO
-          - name: GIT_REVISION
         steps:
-          - name: clone-repo
-            image: alpine/git
-            script: |
-              #!/bin/sh
-              git clone $(params.GIT_REPO) --branch $(params.GIT_REVISION) repo
-
           - name: get-kubeconfig
             ref:
               resolver: git
@@ -163,17 +146,28 @@ spec:
               - name: credentials
                 value: credentials
 
-          - name: make-e2e
-            image: quay.io/operator-framework/operator-sdk:latest
-            workingDir: /repo
+          - name: clone-repo
+            image: alpine/git
+            script: |
+              git clone $(params.git-url) /workspace/source
+              git config --global --add safe.directory /workspace/source
+              cd /workspace/source
+              git checkout $(params.git-rev)
+
+          - name: run-operator-e2e
+            image: golang:1.23-alpine
+            env:
+              - name: KUBECONFIG
+                value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
+            workingDir: /workspace/source
             volumeMounts:
               - name: credentials
                 mountPath: /credentials
             script: |
-              #!/bin/sh
-              export KUBECONFIG=/credentials/kubeconfig
-              cd repo
+              apk add --no-cache bash make git curl \
+              && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+              && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
+              && rm kubectl
+              make deploy $(params.operator-image)
+              kubectl wait --for=condition=available --timeout=60s deployment/opendatahub-operator-controller-manager -n $(params.namespace)
               make e2e-test
-        volumes:
-          - name: credentials
-            emptyDir: {}
