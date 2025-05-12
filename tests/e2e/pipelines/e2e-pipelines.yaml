@@ -4,7 +4,7 @@ metadata:
   name: e2e-test-pipeline
 spec:
   description: |
-    Provisions an ephemeral cluster and runs make deploy and make e2e from a Git repo.
+    Provisions an ephemeral cluster, deploys operator using Makefile, then runs E2E tests.
   params:
     - name: GIT_REPO
       type: string
@@ -14,8 +14,7 @@ spec:
       default: e2e-konflux
     - name: NAMESPACE
       type: string
-      default: default
-
+      default: opendatahub-operator-system
   tasks:
     - name: provision-eaas-space
       taskRef:
@@ -54,6 +53,7 @@ spec:
             params:
               - name: eaasSpaceSecretRef
                 value: $(tasks.provision-eaas-space.results.secretRef)
+
           - name: pick-version
             ref:
               resolver: git
@@ -67,6 +67,7 @@ spec:
             params:
               - name: prefix
                 value: "$(steps.get-supported-versions.results.versions[0])."
+
           - name: create-cluster
             ref:
               resolver: git
@@ -83,21 +84,28 @@ spec:
               - name: version
                 value: "$(steps.pick-version.results.version)"
 
-    - name: deploy-operator
+    - name: deploy-and-test-operator
       runAfter:
         - provision-cluster
+      params:
+        - name: git-url
+          value: "$(params.GIT_REPO)"
+        - name: git-rev
+          value: "$(params.GIT_REVISION)"
+        - name: namespace
+          value: "$(params.NAMESPACE)"
       taskSpec:
         params:
-          - name: GIT_REPO
-          - name: GIT_REVISION
-          - name: NAMESPACE
+          - name: git-url
+            type: string
+          - name: git-rev
+            type: string
+          - name: namespace
+            type: string
+        volumes:
+          - name: credentials
+            emptyDir: {}
         steps:
-          - name: clone-repo
-            image: alpine/git
-            script: |
-              #!/bin/sh
-              git clone $(params.GIT_REPO) --branch $(params.GIT_REVISION) repo
-
           - name: get-kubeconfig
             ref:
               resolver: git
@@ -115,65 +123,34 @@ spec:
                 value: "$(tasks.provision-cluster.results.clusterName)"
               - name: credentials
                 value: credentials
+
+          - name: clone-repo
+            image: alpine/git
+            script: |
+              git clone $(params.git-url) /workspace/source
+              cd /workspace/source
+              git checkout $(params.git-rev)
 
           - name: make-deploy
-            image: quay.io/operator-framework/operator-sdk:latest
-            workingDir: /repo
+            image: gcc
+            env:
+              - name: KUBECONFIG
+                value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
+            workingDir: /workspace/source
             volumeMounts:
               - name: credentials
                 mountPath: /credentials
             script: |
-              #!/bin/sh
-              export KUBECONFIG=/credentials/kubeconfig
-              cd repo
-              make deploy IMG=quay.io/opendatahub/opendatahub-operator:v2.28.0
-        volumes:
-          - name: credentials
-            emptyDir: {}
+              make deploy quay.io/opendatahub/opendatahub-operator:v2.28.0
 
-    - name: run-e2e-tests
-      runAfter:
-        - deploy-operator
-      taskSpec:
-        params:
-          - name: GIT_REPO
-          - name: GIT_REVISION
-        steps:
-          - name: clone-repo
-            image: alpine/git
-            script: |
-              #!/bin/sh
-              git clone $(params.GIT_REPO) --branch $(params.GIT_REVISION) repo
-
-          - name: get-kubeconfig
-            ref:
-              resolver: git
-              params:
-                - name: url
-                  value: https://github.com/konflux-ci/build-definitions.git
-                - name: revision
-                  value: main
-                - name: pathInRepo
-                  value: stepactions/eaas-get-ephemeral-cluster-credentials/0.1/eaas-get-ephemeral-cluster-credentials.yaml
-            params:
-              - name: eaasSpaceSecretRef
-                value: $(tasks.provision-eaas-space.results.secretRef)
-              - name: clusterName
-                value: "$(tasks.provision-cluster.results.clusterName)"
-              - name: credentials
-                value: credentials
-
-          - name: make-e2e
-            image: quay.io/operator-framework/operator-sdk:latest
-            workingDir: /repo
+          - name: run e2e
+            image: gcc
+            env:
+              - name: KUBECONFIG
+                value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
+            workingDir: /workspace/source
             volumeMounts:
               - name: credentials
                 mountPath: /credentials
             script: |
-              #!/bin/sh
-              export KUBECONFIG=/credentials/kubeconfig
-              cd repo
               make e2e-test
-        volumes:
-          - name: credentials
-            emptyDir: {}
