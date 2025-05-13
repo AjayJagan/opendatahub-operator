@@ -143,15 +143,5 @@ spec:
                 mountPath: /credentials
             script: |
               make deploy quay.io/opendatahub/opendatahub-operator:v2.28.0
-
-          - name: run-e2e
-            image: gcc
-            env:
-              - name: KUBECONFIG
-                value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
-            workingDir: /workspace/source
-            volumeMounts:
-              - name: credentials
-                mountPath: /credentials
-            script: |
+              sleep 10s
               make e2e-test
