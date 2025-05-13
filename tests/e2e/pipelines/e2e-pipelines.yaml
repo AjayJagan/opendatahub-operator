@@ -133,7 +133,7 @@ spec:
               git checkout $(params.git-rev)
 
           - name: make-deploy
-            image: gcc
+            image: gcc:latest
             env:
               - name: KUBECONFIG
                 value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
