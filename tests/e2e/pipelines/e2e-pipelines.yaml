@@ -128,6 +128,7 @@ spec:
             image: alpine/git
             script: |
               git clone $(params.git-url) /workspace/source
+              git config --global --add safe.directory /workspace/source
               cd /workspace/source
               git checkout $(params.git-rev)
 
