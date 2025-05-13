@@ -132,7 +132,7 @@ spec:
               git checkout $(params.git-rev)
 
           - name: make-deploy
-            image: quay.io/repository/ajaganat/ubi8-make-tool
+            image: gcc
             env:
               - name: KUBECONFIG
                 value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
@@ -144,7 +144,7 @@ spec:
               make deploy quay.io/opendatahub/opendatahub-operator:v2.28.0
 
           - name: make-e2e
-            image: quay.io/repository/ajaganat/ubi8-make-tool
+            image: gcc
             env:
               - name: KUBECONFIG
                 value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
