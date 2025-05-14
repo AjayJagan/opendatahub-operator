@@ -126,9 +126,14 @@ spec:
 
           - name: clone-repo
             image: alpine/git
+            env:
+              - name: USERNAME
+                value: $(steps.get-kubeconfig.results.username)
+              - name: PASS
+                value: $(steps.get-kubeconfig.results.passwordPath)
             script: |
-              echo $(steps.get-kubeconfig.results.username)
-              cat $(steps.get-kubeconfig.results.passwordPath)
+              echo "$USERNAME"
+              echo "$PASS"
               git clone $(params.git-url) /workspace/source
               git config --global --add safe.directory /workspace/source
               cd /workspace/source
