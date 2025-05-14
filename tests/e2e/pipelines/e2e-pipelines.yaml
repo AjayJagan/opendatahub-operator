@@ -146,7 +146,7 @@ spec:
               && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
               && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
               && rm kubectl
-              make deploy IMG=quay.io/ajaganat/opendatahub-operator:v2.28.0
+              make deploy IMG=quay.io/ajaganat/opendatahub-operator:v2.29.0
+              kubectl wait --for=condition=available --timeout=400s deployment/opendatahub-operator-controller-manager -n opendatahub-operator-system
               kubectl describe pod -n opendatahub-operator-system $(kubectl get pod -n opendatahub-operator-system -l name=opendatahub-operator,control-plane=controller-manager -o jsonpath='{.items[0].metadata.name}')
-              kubectl wait --for=condition=available --timeout=300s deployment/opendatahub-operator-controller-manager -n opendatahub-operator-system
               make e2e-test
