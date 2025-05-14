@@ -149,5 +149,5 @@ spec:
               make deploy IMG=quay.io/ajaganat/opendatahub-operator:v2.28.0
               kubectl get deployments -n opendatahub-operator-system
               kubectl describe deployment opendatahub-operator-controller-manager -n opendatahub-operator-system 
-              kubectl wait --for=condition=available --timeout=120s deployment/opendatahub-operator-controller-manager -n opendatahub-operator-system
+              kubectl wait --for=condition=available --timeout=300s deployment/opendatahub-operator-controller-manager -n opendatahub-operator-system
               make e2e-test
