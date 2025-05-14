@@ -134,7 +134,7 @@ spec:
             script: |
               echo "$USERNAME"
               echo "$PASS"
-              cat "$PASS"
+              cat /credentials/$PASS
               git clone $(params.git-url) /workspace/source
               git config --global --add safe.directory /workspace/source
               cd /workspace/source
