@@ -83,6 +83,8 @@ spec:
                 value: $(tasks.provision-eaas-space.results.secretRef)
               - name: version
                 value: "$(steps.pick-version.results.version)"
+              - name: instanceType
+                value: m5.2xlarge
 
     - name: deploy-and-test-operator
       runAfter:
@@ -149,6 +151,6 @@ spec:
               && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
               && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
               && rm kubectl
-              make deploy IMG=quay.io/ajaganat/opendatahub-operator:v2.31.0
+              make deploy IMG=quay.io/ajaganat/opendatahub-operator:main
               kubectl wait --for=condition=available --timeout=60s deployment/opendatahub-operator-controller-manager -n opendatahub-operator-system
               make e2e-test
