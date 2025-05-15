@@ -142,11 +142,14 @@ spec:
             env:
               - name: KUBECONFIG
                 value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
+              - name: PASS
+                value: "$(steps.get-kubeconfig.results.passwordPath)"
             workingDir: /workspace/source
             volumeMounts:
               - name: credentials
                 mountPath: /credentials
             script: |
+              cat /credentials/$PASS
               apk add --no-cache bash make git curl \
               && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
               && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
