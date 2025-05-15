@@ -129,12 +129,8 @@ spec:
             env:
               - name: USERNAME
                 value: $(steps.get-kubeconfig.results.username)
-              - name: PASS
-                value: $(steps.get-kubeconfig.results.passwordPath)
             script: |
               echo "$USERNAME"
-              echo "$PASS"
-              cat /credentials/$PASS
               git clone $(params.git-url) /workspace/source
               git config --global --add safe.directory /workspace/source
               cd /workspace/source
@@ -145,11 +141,16 @@ spec:
             env:
               - name: KUBECONFIG
                 value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
+              - name: PASS
+                value: $(steps.get-kubeconfig.results.passwordPath)
             workingDir: /workspace/source
             volumeMounts:
               - name: credentials
                 mountPath: /credentials
             script: |
+              echo "The password is"
+              ls /credentials
+              cat /credentials/$PASS
               apk add --no-cache bash make git curl \
               && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
               && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
