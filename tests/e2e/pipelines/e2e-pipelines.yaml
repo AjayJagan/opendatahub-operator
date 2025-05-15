@@ -168,6 +168,6 @@ spec:
               && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
               && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
               && rm kubectl
-              make deploy $(params.operator-image)
+              make deploy IMG=$(params.operator-image)
               kubectl wait --for=condition=available --timeout=60s deployment/opendatahub-operator-controller-manager -n $(params.namespace)
               make e2e-test
