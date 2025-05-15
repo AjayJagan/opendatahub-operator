@@ -130,7 +130,6 @@ spec:
               - name: USERNAME
                 value: $(steps.get-kubeconfig.results.username)
             script: |
-              echo "$USERNAME"
               git clone $(params.git-url) /workspace/source
               git config --global --add safe.directory /workspace/source
               cd /workspace/source
@@ -141,21 +140,15 @@ spec:
             env:
               - name: KUBECONFIG
                 value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
-              - name: PASS
-                value: $(steps.get-kubeconfig.results.passwordPath)
             workingDir: /workspace/source
             volumeMounts:
               - name: credentials
                 mountPath: /credentials
             script: |
-              echo "The password is"
-              ls /credentials
-              cat /credentials/$PASS
               apk add --no-cache bash make git curl \
               && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
               && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
               && rm kubectl
               make deploy IMG=quay.io/ajaganat/opendatahub-operator:v2.31.0
-              kubectl wait --for=condition=available --timeout=500s deployment/opendatahub-operator-controller-manager -n opendatahub-operator-system
-              kubectl describe pod -n opendatahub-operator-system $(kubectl get pod -n opendatahub-operator-system -l name=opendatahub-operator,control-plane=controller-manager -o jsonpath='{.items[0].metadata.name}')
-              make e2e-test
+              kubectl wait --for=condition=available --timeout=60s deployment/opendatahub-operator-controller-manager -n opendatahub-operator-system
+              make e2e-test-test
