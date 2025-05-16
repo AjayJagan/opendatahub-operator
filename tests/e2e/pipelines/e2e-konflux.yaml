@@ -5,8 +5,8 @@ metadata:
   name: deploy-operator
 spec:
   description: |
-    An integration test which provisions an ephemeral Hypershift cluster and deploys an Operator
-    bundle from a Konflux snapshot.
+    An integration test which provisions an ephemeral Hypershift cluster, deploys opendatahub-operator
+    bundle from a Konflux snapshot and runs the e2e tests against it.
   params:
     - description: Snapshot of the application
       name: SNAPSHOT
@@ -20,7 +20,7 @@ spec:
       default: main
     - name: NAMESPACE
       type: string
-      default: opendatahub-operator-system
+      default: openshift-operators
   tasks:
     - name: parse-metadata
       taskRef:
@@ -151,7 +151,7 @@ spec:
               - bundle
               - --namespace
               - "$(params.namespace)"
-              - "quay.io/redhat-user-workloads/open-data-hub-tenant/odh-operator-odh-poc1:v2.29.0"
+              - "quay.io/redhat-user-workloads/open-data-hub-tenant/odh-operator-bundle-odh-poc1:v2.29.0"
     - name: run-e2e-tests
       runAfter:
         - deploy-operator
@@ -195,7 +195,7 @@ spec:
           - name: clone-repo
             image: alpine/git
             script: |
-              git clone $(params.git-url) /workspace/source
+              git clone --depth 1 $(params.git-url) /workspace/source
               git config --global --add safe.directory /workspace/source
               cd /workspace/source
               git checkout $(params.git-rev)
@@ -215,4 +215,4 @@ spec:
               && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
               && rm kubectl
               kubectl wait --for=condition=available --timeout=60s deployment/opendatahub-operator-controller-manager -n $(params.namespace)
-              make e2e-test
+              make e2e-test -e E2E_TEST_OPERATOR_NAMESPACE=$(params.namespace)
