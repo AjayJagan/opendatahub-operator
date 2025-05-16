@@ -151,7 +151,7 @@ spec:
               - bundle
               - --namespace
               - "$(params.namespace)"
-              - "$(params.bundleImage)"
+              - "quay.io/redhat-user-workloads/open-data-hub-tenant/odh-operator-odh-poc1:v2.29.0"
     - name: run-e2e-tests
       runAfter:
         - deploy-operator
@@ -191,7 +191,7 @@ spec:
                 value: "$(tasks.provision-cluster.results.clusterName)"
               - name: credentials
                 value: credentials
-                
+
           - name: clone-repo
             image: alpine/git
             script: |
