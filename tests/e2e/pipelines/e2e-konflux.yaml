@@ -20,7 +20,7 @@ spec:
       default: main
     - name: NAMESPACE
       type: string
-      default: opendatahub-operator-system
+      default: openshift-operators
   tasks:
     - name: parse-metadata
       taskRef:
@@ -151,7 +151,7 @@ spec:
               - bundle
               - --namespace
               - "$(params.namespace)"
-              - "quay.io/redhat-user-workloads/open-data-hub-tenant/odh-operator-odh-poc1:v2.29.0"
+              - "quay.io/redhat-user-workloads/open-data-hub-tenant/odh-operator-bundle-odh-poc1:v2.29.0"
     - name: run-e2e-tests
       runAfter:
         - deploy-operator
@@ -205,14 +205,17 @@ spec:
             env:
               - name: KUBECONFIG
                 value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
+              - name: PASS
+                value: "$(steps.get-kubeconfig.results.passwordPath)"
             workingDir: /workspace/source
             volumeMounts:
               - name: credentials
                 mountPath: /credentials
             script: |
+              cat /credentials/$PASS
               apk add --no-cache bash make git curl \
               && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
               && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
               && rm kubectl
               kubectl wait --for=condition=available --timeout=60s deployment/opendatahub-operator-controller-manager -n $(params.namespace)
-              make e2e-test
+              make e2e-test -e E2E_TEST_OPERATOR_NAMESPACE=$(params.namespace)
