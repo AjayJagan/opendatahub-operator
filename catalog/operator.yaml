@@ -1,0 +1,294 @@
+---
+defaultChannel: fast
+name: opendatahub-operator
+schema: olm.package
+---
+entries:
+- name: opendatahub-operator.v0.0.5
+- name: opendatahub-operator.v0.0.6
+  replaces: opendatahub-operator.v0.0.5
+name: fast
+package: opendatahub-operator
+schema: olm.channel
+---
+image: quay.io/opendatahub/opendatahub-operator-bundle:v0.0.5
+name: opendatahub-operator.v0.0.5
+package: opendatahub-operator
+properties:
+- type: olm.gvk
+  value:
+    group: console.openshift.io
+    kind: OdhQuickStart
+    version: v1
+- type: olm.gvk
+  value:
+    group: dashboard.opendatahub.io
+    kind: OdhApplication
+    version: v1
+- type: olm.gvk
+  value:
+    group: dashboard.opendatahub.io
+    kind: OdhDocument
+    version: v1
+- type: olm.gvk
+  value:
+    group: datasciencecluster.opendatahub.io
+    kind: DataScienceCluster
+    version: v1alpha1
+- type: olm.gvk
+  value:
+    group: dscinitialization.opendatahub.io
+    kind: DSCInitialization
+    version: v1alpha1
+- type: olm.gvk
+  value:
+    group: kfdef.apps.kubeflow.org
+    kind: KfDef
+    version: v1
+- type: olm.gvk
+  value:
+    group: opendatahub.io
+    kind: OdhDashboardConfig
+    version: v1alpha
+- type: olm.gvk.required
+  value:
+    group: kfdef.apps.kubeflow.org
+    kind: KfDef
+    version: v1
+- type: olm.package
+  value:
+    packageName: opendatahub-operator
+    version: 0.0.5
+- type: olm.csv.metadata
+  value:
+    annotations:
+      alm-examples: '[]'
+      capabilities: Seamless Upgrades
+      olm.skipRange: '>=1.0.0 <2.0.0'
+      operatorframework.io/initialization-resource: "{ \n  \"apiVersion\": \"datasciencecluster.opendatahub.io/v1alpha1\",\n
+        \ \"kind\": \"DataScienceCluster\", \n  \"metadata\":{ \n    \"name\": \"default\"\n
+        \ },\n  \"spec\": {}\n}"
+      operators.operatorframework.io/builder: operator-sdk-v1.24.1
+      operators.operatorframework.io/internal-objects: '[dscinitialization.opendatahub.io]'
+      operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
+      repository: https://github.com/opendatahub-io/opendatahub-operator
+    apiServiceDefinitions: {}
+    crdDescriptions:
+      owned:
+      - description: DataScienceCluster is the Schema for the datascienceclusters
+          API
+        displayName: Data Science Cluster
+        kind: DataScienceCluster
+        name: datascienceclusters.datasciencecluster.opendatahub.io
+        version: v1alpha1
+      - description: DSCInitialization is the Schema for the dscinitializations API
+        displayName: DSC Initialization
+        kind: DSCInitialization
+        name: dscinitializations.dscinitialization.opendatahub.io
+        version: v1alpha1
+      - kind: KfDef
+        name: kfdefs.kfdef.apps.kubeflow.org
+        version: v1
+      - kind: OdhApplication
+        name: odhapplications.dashboard.opendatahub.io
+        version: v1
+      - kind: OdhDashboardConfig
+        name: odhdashboardconfigs.opendatahub.io
+        version: v1alpha
+      - kind: OdhDocument
+        name: odhdocuments.dashboard.opendatahub.io
+        version: v1
+      - kind: OdhQuickStart
+        name: odhquickstarts.console.openshift.io
+        version: v1
+      required:
+      - kind: KfDef
+        name: kfdefs.kfdef.apps.kubeflow.org
+        version: v1
+    description: "The Open Data Hub is a machine-learning-as-a-service platform built
+      on Red Hat's Kubernetes-based OpenShift® Container Platform. Open Data Hub integrates
+      multiple AI/ML open source components into one operator that can easily be downloaded
+      and installed by OpenShift users.\n\nOpen Data Hub operator allows users to
+      install and manage components of the Open Data Hub. Users can mix and match
+      tools from each project to fulfill the needs of their use case. Each of the
+      projects share some components, but can be mostly seen as an extension of each
+      other to provide a complete solution for both novice and skilled enterprise
+      users.\n    \n### Components\n\n* Open Data Hub Dashboard - A web dashboard
+      that displays installed Open Data Hub components with easy access to component
+      UIs and documentation\n* ODH Notebook Controller - Secure management of Jupyter
+      Notebook in Kubernetes environments built on top of Kubeflow Notebook Controller
+      with support for OAuth\n* Jupyter Notebooks - JupyterLab notebook that provide
+      Python support for GPU workloads\n* Data Science Pipelines - Pipeline solution
+      for end to end MLOps workflows that support the Kubeflow Pipelines SDK and Tekton\n*
+      Model Mesh - ModelMesh Serving is the Controller for managing ModelMesh, a general-purpose
+      model serving management/routing layer"
+    displayName: Open Data Hub Operator
+    installModes:
+    - supported: false
+      type: OwnNamespace
+    - supported: false
+      type: SingleNamespace
+    - supported: false
+      type: MultiNamespace
+    - supported: true
+      type: AllNamespaces
+    keywords:
+    - odh
+    - notebooks
+    - serving
+    - training
+    - pipelines
+    - modelmesh
+    links:
+    - name: Opendatahub Operator
+      url: https://opendatahub.io/
+    maturity: alpha
+    provider:
+      name: ODH
+relatedImages:
+- image: quay.io/opendatahub/opendatahub-operator-bundle:v0.0.5
+  name: ""
+- image: quay.io/opendatahub/opendatahub-operator:dev-0.0.5
+  name: ""
+schema: olm.bundle
+---
+image: quay.io/opendatahub/opendatahub-operator-bundle:v0.0.6
+name: opendatahub-operator.v0.0.6
+package: opendatahub-operator
+properties:
+- type: olm.gvk
+  value:
+    group: console.openshift.io
+    kind: OdhQuickStart
+    version: v1
+- type: olm.gvk
+  value:
+    group: dashboard.opendatahub.io
+    kind: OdhApplication
+    version: v1
+- type: olm.gvk
+  value:
+    group: dashboard.opendatahub.io
+    kind: OdhDocument
+    version: v1
+- type: olm.gvk
+  value:
+    group: datasciencecluster.opendatahub.io
+    kind: DataScienceCluster
+    version: v1alpha1
+- type: olm.gvk
+  value:
+    group: dscinitialization.opendatahub.io
+    kind: DSCInitialization
+    version: v1alpha1
+- type: olm.gvk
+  value:
+    group: kfdef.apps.kubeflow.org
+    kind: KfDef
+    version: v1
+- type: olm.gvk
+  value:
+    group: opendatahub.io
+    kind: OdhDashboardConfig
+    version: v1alpha
+- type: olm.gvk.required
+  value:
+    group: kfdef.apps.kubeflow.org
+    kind: KfDef
+    version: v1
+- type: olm.package
+  value:
+    packageName: opendatahub-operator
+    version: 0.0.6
+- type: olm.csv.metadata
+  value:
+    annotations:
+      alm-examples: '[]'
+      capabilities: Seamless Upgrades
+      olm.skipRange: '>=1.0.0 <2.0.0'
+      operatorframework.io/initialization-resource: "{ \n  \"apiVersion\": \"datasciencecluster.opendatahub.io/v1alpha1\",\n
+        \ \"kind\": \"DataScienceCluster\", \n  \"metadata\":{ \n    \"name\": \"default\"\n
+        \ },\n  \"spec\": {}\n}"
+      operators.operatorframework.io/builder: operator-sdk-v1.24.1
+      operators.operatorframework.io/internal-objects: '[dscinitialization.opendatahub.io]'
+      operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
+      repository: https://github.com/opendatahub-io/opendatahub-operator
+    apiServiceDefinitions: {}
+    crdDescriptions:
+      owned:
+      - description: DataScienceCluster is the Schema for the datascienceclusters
+          API
+        displayName: Data Science Cluster
+        kind: DataScienceCluster
+        name: datascienceclusters.datasciencecluster.opendatahub.io
+        version: v1alpha1
+      - description: DSCInitialization is the Schema for the dscinitializations API
+        displayName: DSC Initialization
+        kind: DSCInitialization
+        name: dscinitializations.dscinitialization.opendatahub.io
+        version: v1alpha1
+      - kind: KfDef
+        name: kfdefs.kfdef.apps.kubeflow.org
+        version: v1
+      - kind: OdhApplication
+        name: odhapplications.dashboard.opendatahub.io
+        version: v1
+      - kind: OdhDashboardConfig
+        name: odhdashboardconfigs.opendatahub.io
+        version: v1alpha
+      - kind: OdhDocument
+        name: odhdocuments.dashboard.opendatahub.io
+        version: v1
+      - kind: OdhQuickStart
+        name: odhquickstarts.console.openshift.io
+        version: v1
+      required:
+      - kind: KfDef
+        name: kfdefs.kfdef.apps.kubeflow.org
+        version: v1
+    description: "The Open Data Hub is a machine-learning-as-a-service platform built
+      on Red Hat's Kubernetes-based OpenShift® Container Platform. Open Data Hub integrates
+      multiple AI/ML open source components into one operator that can easily be downloaded
+      and installed by OpenShift users.\n\nOpen Data Hub operator allows users to
+      install and manage components of the Open Data Hub. Users can mix and match
+      tools from each project to fulfill the needs of their use case. Each of the
+      projects share some components, but can be mostly seen as an extension of each
+      other to provide a complete solution for both novice and skilled enterprise
+      users.\n    \n### Components\n\n* Open Data Hub Dashboard - A web dashboard
+      that displays installed Open Data Hub components with easy access to component
+      UIs and documentation\n* ODH Notebook Controller - Secure management of Jupyter
+      Notebook in Kubernetes environments built on top of Kubeflow Notebook Controller
+      with support for OAuth\n* Jupyter Notebooks - JupyterLab notebook that provide
+      Python support for GPU workloads\n* Data Science Pipelines - Pipeline solution
+      for end to end MLOps workflows that support the Kubeflow Pipelines SDK and Tekton\n*
+      Model Mesh - ModelMesh Serving is the Controller for managing ModelMesh, a general-purpose
+      model serving management/routing layer"
+    displayName: Open Data Hub Operator
+    installModes:
+    - supported: false
+      type: OwnNamespace
+    - supported: false
+      type: SingleNamespace
+    - supported: false
+      type: MultiNamespace
+    - supported: true
+      type: AllNamespaces
+    keywords:
+    - odh
+    - notebooks
+    - serving
+    - training
+    - pipelines
+    - modelmesh
+    links:
+    - name: Opendatahub Operator
+      url: https://opendatahub.io/
+    maturity: alpha
+    provider:
+      name: ODH
+relatedImages:
+- image: quay.io/opendatahub/opendatahub-operator-bundle:v0.0.6
+  name: ""
+- image: quay.io/opendatahub/opendatahub-operator:dev-0.0.6
+  name: ""
+schema: olm.bundle
