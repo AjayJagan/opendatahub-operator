@@ -15,6 +15,7 @@ jobs:
         shell: bash
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
         id: get_branch
+
       - name: Git checkout current branch
         uses: actions/checkout@v4
         with:
@@ -30,24 +31,7 @@ jobs:
           sed -i '/# Ignore catalog related files/d' .gitignore
           sed -i '/catalog\//d' .gitignore
           CURRENT_VERSION=${BRANCH_NAME#odh-}
-          MAJOR=$(echo "$CURRENT_VERSION" | cut -d '.' -f 1)
-          MINOR=$(echo "$CURRENT_VERSION" | cut -d '.' -f 2)
-          PATCH=$(echo "$CURRENT_VERSION" | cut -d '.' -f 3)
-          if [ "$PATCH" -eq 0 ]; then
-            if [ "$MINOR" -eq 0 ]; then
-              PREV_MAJOR=$((MAJOR - 1))
-              PREV_MINOR=9
-              PREV_PATCH=0
-              PREV_VERSION="$PREV_MAJOR.$PREV_MINOR.$PREV_PATCH"
-            else
-              PREV_PATCH=0
-              PREV_MINOR=$((MINOR - 1))
-              PREV_VERSION="$MAJOR.$PREV_MINOR.$PREV_PATCH"
-            fi
-          else
-            PREV_PATCH=$((PATCH - 1))
-            PREV_VERSION="$MAJOR.$MINOR.$PREV_PATCH"
-          fi
+          PREV_VERSION=$(./.github/scripts/get-previous-version.sh $CURRENT_VERSION)
           make catalog-prepare -e BUNDLE_IMGS=${QUAY_IMG}:v${PREV_VERSION},${QUAY_IMG}:v${CURRENT_VERSION}
 
       - name: Push latest FBC artifacts
