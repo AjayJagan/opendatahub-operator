@@ -72,6 +72,62 @@ spec:
         operator: in
         values:
         - "Failed"
+    - name: trigger-fbc-fragment
+      params:
+        - name: target_branch
+          value: "$(params.target_branch)"
+      when:
+        - input: "$(tasks.push-dockerfile.status)"
+          operator: in
+          values: ["Succeeded"]
+        - input: "$(tasks.rpms-signature-scan.status)"
+          operator: in
+          values: ["Succeeded"]
+        - input: "$(tasks.build-container.status)"
+          operator: in
+          values: ["Succeeded"]
+        - input: "$(tasks.build-image-index.status)"
+          operator: in
+          values: ["Succeeded"]
+        - input: "$(tasks.clair-scan.status)"
+          operator: in
+          values: ["Succeeded"]
+        - input: "$(tasks.sast-snyk-check.status)"
+          operator: in
+          values: ["Succeeded"]
+      taskSpec:
+        params:
+          - name: target_branch
+            type: string
+        steps:
+          - name: trigger-workflow
+            image: alpine
+            env:
+              - name: TARGET_BRANCH
+                value: "$(params.target_branch)"
+              - name: GITHUB_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: github-token-secret
+                    key: token
+            script: |
+              #!/bin/sh
+              set -e
+
+              # Install curl
+              apk add --no-cache curl
+
+              OWNER="opendatahub-io"
+              REPO="opendatahub-operator"
+              WORKFLOW_FILE="process-fbc-fragment.yaml"
+
+              echo "Triggering GitHub Actions workflow $WORKFLOW_FILE for branch $TARGET_BRANCH"
+
+              curl -X POST "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/$WORKFLOW_FILE/dispatches" \
+                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -H "Accept: application/vnd.github.v3+json" \
+                -H "Content-Type: application/json" \
+                -d '{ "ref": "'"$TARGET_BRANCH"'" }'
     params:
     - description: Source Repository URL
       name: git-url
@@ -652,55 +708,11 @@ spec:
         operator: in
         values:
         - "false"
-    - name: trigger-fbc-fragment
-      params:
-        - name: target_branch
-          value: "$(params.target_branch)"
-      taskSpec:
-        params:
-          - name: target_branch
-            type: string
-        steps:
-          - name: trigger-workflow
-            image: alpine
-            env:
-              - name: TARGET_BRANCH
-                value: "$(params.target_branch)"
-              - name: GITHUB_TOKEN
-                valueFrom:
-                  secretKeyRef:
-                    name: github-token-secret
-                    key: token
-            script: |
-              #!/bin/sh
-              set -e
-
-              # Install curl
-              apk add --no-cache curl
-
-              OWNER="opendatahub-io"
-              REPO="opendatahub-operator"
-              WORKFLOW_FILE="process-fbc-fragment.yaml"
-
-              echo "Triggering GitHub Actions workflow $WORKFLOW_FILE for branch $TARGET_BRANCH"
-
-              curl -X POST "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/$WORKFLOW_FILE/dispatches" \
-                -H "Authorization: Bearer $GITHUB_TOKEN" \
-                -H "Accept: application/vnd.github.v3+json" \
-                -H "Content-Type: application/json" \
-                -d '{ "ref": "'"$TARGET_BRANCH"'" }'
-      runAfter:
-        - push-dockerfile
-        - rpms-signature-scan
-    workspaces:
-    - name: git-auth
-      optional: true
-    - name: netrc
-      optional: true
   taskRunTemplate:
     serviceAccountName: build-pipeline-odh-operator-bundle
   workspaces:
   - name: git-auth
-    secret:
-      secretName: '{{ git_auth_secret }}'
+    optional: true
+  - name: netrc
+    optional: true
 status: {}
