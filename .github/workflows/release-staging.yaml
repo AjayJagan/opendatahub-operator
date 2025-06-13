@@ -22,12 +22,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Validate tracker URL
-      run: |
-        if ! echo "${{ env.TRACKER_URL }}" | grep -qE '^https://github\.com/opendatahub-io/opendatahub-community/issues/'; then
-          echo "Error: Invalid tracker URL format. Expected format: https://github.com/opendatahub-io/opendatahub-community/issues/<issue-number>"
-          exit 1
-        fi
+    # - name: Validate tracker URL
+    #   run: |
+    #     if ! echo "${{ env.TRACKER_URL }}" | grep -qE '^https://github\.com/opendatahub-io/opendatahub-community/issues/'; then
+    #       echo "Error: Invalid tracker URL format. Expected format: https://github.com/opendatahub-io/opendatahub-community/issues/<issue-number>"
+    #       exit 1
+    #     fi
 
     - name: Extract issue number
       run: |
@@ -41,9 +41,17 @@ jobs:
 
     - name: Create release branch
       run: |
-        git fetch origin main
-        git checkout -b odh-${{ env.VERSION }} origin/main
-        git push origin odh-${{ env.VERSION }}
+        # Check if branch exists remotely
+        if git ls-remote --heads origin odh-${{ env.VERSION }} | grep -q "odh-${{ env.VERSION }}"; then
+          echo "Branch odh-${{ env.VERSION }} already exists, checking it out"
+          git fetch origin odh-${{ env.VERSION }}
+          git checkout odh-${{ env.VERSION }}
+          git pull origin odh-${{ env.VERSION }}
+        else
+          echo "Creating new branch odh-${{ env.VERSION }}"
+          git checkout -b odh-${{ env.VERSION }} origin/main
+          git push -u origin odh-${{ env.VERSION }}
+        fi
 
     - name: Update versions in relevant files
       run: ./.github/scripts/update-versions.sh ${{ env.VERSION }}
@@ -76,14 +84,14 @@ jobs:
       id: generate-token
       uses: tibdex/github-app-token@v2
       with:
-        app_id: ${{ secrets.ODH_RELEASE_BOT_APP_ID }}
-        private_key: ${{ secrets.ODH_RELEASE_BOT_PRIVATE_KEY }}
+        app_id: ${{ secrets.AJ_BOT_APP_ID }}
+        private_key: ${{ secrets.AJ_BOT_PRIVATE_KEY }}
 
     - name: Comment on Tracker Issue
       uses: peter-evans/create-or-update-comment@v3
       with:
         token: ${{ steps.generate-token.outputs.token }}
-        repository: opendatahub-io/opendatahub-community
+        repository: AjayJagan/notes-operator
         issue-number: ${{ env.ISSUE_NUMBER }}
         body: |
           #Release#
@@ -104,18 +112,18 @@ jobs:
         tag_name: v${{ env.VERSION }}
         prerelease: true
         
-    - name: Trigger ODH Konflux Release Onboarder
-      uses: lasith-kg/dispatch-workflow@v2.0.0
-      with:
-        dispatch-method: workflow_dispatch
-        workflow: odh-konflux-release-onboarder.yml
-        repo: odh-konflux-central
-        owner: opendatahub-io
-        ref: main
-        token: ${{ steps.generate-token.outputs.token }}
-        workflow-inputs: |
-          {
-            "component": "opendatahub-operator",
-            "release_branch": "odh-${{ env.VERSION }}",
-            "version": "v${{ env.VERSION }}"
-          }
+    # - name: Trigger ODH Konflux Release Onboarder
+    #   uses: lasith-kg/dispatch-workflow@v2.0.0
+    #   with:
+    #     dispatch-method: workflow_dispatch
+    #     workflow: odh-konflux-release-onboarder.yml
+    #     repo: odh-konflux-central
+    #     owner: opendatahub-io
+    #     ref: main
+    #     token: ${{ steps.generate-token.outputs.token }}
+    #     workflow-inputs: |
+    #       {
+    #         "component": "opendatahub-operator",
+    #         "release_branch": "odh-${{ env.VERSION }}",
+    #         "version": "v${{ env.VERSION }}"
+    #       }
