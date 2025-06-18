@@ -7,7 +7,6 @@ ARG BUILDPLATFORM TARGETPLATFORM
 # To expose these arguments inside the build stage, we need to redefine it without a value.
 ARG TARGETOS TARGETARCH
 
-RUN echo "GOOS=${TARGETOS} GOARCH=${TARGETARCH}"
 ################################################################################
 FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi9/toolbox as manifests
 ARG USE_LOCAL=false
@@ -33,8 +32,15 @@ COPY config/osd-configs/ /opt/manifests/osd-configs
 ################################################################################
 FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi9/go-toolset:$GOLANG_VERSION as builder
 ARG CGO_ENABLED=1
+ARG TARGETOS TARGETARCH
 USER root
 WORKDIR /workspace
+
+# Debug: Print target architecture
+RUN echo "BUILDPLATFORM=${BUILDPLATFORM}"
+RUN echo "TARGETPLATFORM=${TARGETPLATFORM}"
+RUN echo "GOOS=${TARGETOS} GOARCH=${TARGETARCH}"
+
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum
@@ -53,6 +59,7 @@ RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a
 
 ################################################################################
 FROM --platform=$TARGETPLATFORM registry.access.redhat.com/ubi9/ubi-minimal:latest
+ARG TARGETOS TARGETARCH
 WORKDIR /
 COPY --from=builder /workspace/manager .
 COPY --chown=1001:0 --from=manifests /opt/manifests /opt/manifests
