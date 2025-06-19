@@ -317,6 +317,7 @@ bundle-build: bundle
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
+	echo "Pushing bundle image: $(BUNDLE_IMG)"
 	$(MAKE) image-push IMG=$(BUNDLE_IMG)
 
 .PHONY: deploy-bundle
