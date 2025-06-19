@@ -243,8 +243,6 @@ spec:
         value: $(params.build-args-file)
       - name: PRIVILEGED_NESTED
         value: $(params.privileged-nested)
-      - name: PLATFORM
-        value: $(tasks.build-images.matrix.params.PLATFORM)
       - name: SOURCE_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
