@@ -33,6 +33,7 @@ COPY config/osd-configs/ /opt/manifests/osd-configs
 FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi9/go-toolset:$GOLANG_VERSION as builder
 ARG CGO_ENABLED=1
 ARG TARGETOS TARGETARCH
+ARG BUILDPLATFORM TARGETPLATFORM
 USER root
 WORKDIR /workspace
 

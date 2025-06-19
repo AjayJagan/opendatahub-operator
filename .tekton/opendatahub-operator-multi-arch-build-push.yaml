@@ -26,7 +26,7 @@ spec:
     value: quay.io/redhat-user-workloads/open-data-hub-tenant/opendatahub-operator-multi-arch-build:{{revision}}
   - name: build-platforms
     value:
-    - linux/x86_64
+    - linux/amd64
     - linux/arm64
     - linux/ppc64le
     - linux/s390x
@@ -36,6 +36,10 @@ spec:
     value: Dockerfiles/Dockerfile
   - name: path-context
     value: .
+  - name: build-args
+    value:
+    - BUILDPLATFORM=linux/amd64
+    - TARGETPLATFORM=$(tasks.build-images.matrix.params.PLATFORM)
   pipelineSpec:
     description: |
       This pipeline is ideal for building multi-arch container images from a Containerfile while maintaining trust after pipeline customization.
@@ -120,7 +124,7 @@ spec:
       name: privileged-nested
       type: string
     - default:
-      - linux/x86_64
+      - linux/amd64
       description: List of platforms to build the container images on. The available
         set of values is determined by the configuration of the multi-platform-controller.
       name: build-platforms
@@ -243,8 +247,8 @@ spec:
         value: $(params.build-args-file)
       - name: PRIVILEGED_NESTED
         value: $(params.privileged-nested)
-      - name: BUILD_PLATFORM
-        value: $(params.build-platform)
+      - name: PLATFORM
+        value: $(tasks.build-images.matrix.params.PLATFORM)
       - name: SOURCE_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
