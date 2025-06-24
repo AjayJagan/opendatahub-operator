@@ -12,15 +12,9 @@ spec:
       name: SNAPSHOT
       default: '{"components": [{"name":"odh-operator", "containerImage": "quay.io/AjayJagan/opendatahub-operator:latest"}]}'
       type: string
-    - name: GIT_REPO
-      type: string
-      default: https://github.com/AjayJagan/opendatahub-operator.git
-    - name: GIT_REVISION
-      type: string
-      default: konflux-e2e-poc
     - name: NAMESPACE
       type: string
-      default: openshift-operators
+      default: opendatahub-operator-system
   tasks:
     - name: parse-metadata
       taskRef:
