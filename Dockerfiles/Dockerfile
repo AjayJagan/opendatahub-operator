@@ -1,8 +1,11 @@
 # Build the manager binary
 ARG GOLANG_VERSION=1.23
 
-ARG BUILDPLATFORM
-ARG TARGETPLATFORM
+ARG BUILDPLATFORM TARGETPLATFORM
+
+# These built-in args are defined in the global scope, and are not automatically accessible within build stages or RUN commands.Add commentMore actions
+# To expose these arguments inside the build stage, we need to redefine it without a value.
+ARG TARGETOS TARGETARCH
 
 ################################################################################
 FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi9/toolbox as manifests
@@ -29,7 +32,7 @@ COPY config/osd-configs/ /opt/manifests/osd-configs
 ################################################################################
 FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi9/go-toolset:$GOLANG_VERSION as builder
 ARG CGO_ENABLED=1
-ARG TARGETARCH
+ARG TARGETOS TARGETARCH
 USER root
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -45,8 +48,7 @@ COPY internal/ internal/
 COPY cmd/main.go cmd/main.go
 COPY pkg/ pkg/
 
-# Build stripe out debug info to minimize binary size
-RUN CGO_ENABLED=${CGO_ENABLED} GOOS=linux GOARCH=${TARGETARCH} go build -a -ldflags="-s -w" -tags strictfipsruntime -o manager cmd/main.go
+RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} go build -a -ldflags="-s -w" -tags strictfipsruntime -o manager cmd/main.go
 
 ################################################################################
 FROM --platform=$TARGETPLATFORM registry.access.redhat.com/ubi9/ubi-minimal:latest
