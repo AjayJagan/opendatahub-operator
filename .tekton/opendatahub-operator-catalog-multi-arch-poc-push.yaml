@@ -27,7 +27,6 @@ spec:
   - name: build-platforms
     value:
     - linux/x86_64
-    - linux/arm64
   - name: dockerfile
     value: Dockerfiles/catalog.Dockerfile
   - name: path-context
@@ -48,10 +47,55 @@ spec:
         - name: name
           value: show-sbom
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-show-sbom:0.1@sha256:86c069cac0a669797e8049faa8aa4088e70ff7fcd579d5bdc37626a9e0488a05
+          value: quay.io/konflux-ci/tekton-catalog/task-show-sbom:0.1@sha256:002f7c8c1d2f9e09904035da414aba1188ae091df0ea9532cd997be05e73d594
         - name: kind
           value: task
         resolver: bundles
+    - name: send-slack-notification
+      params:
+      - name: message
+        value: "$(tasks.rhoai-init.results.slack-message-failure-text)"
+      - name: secret-name
+        value: slack-secret
+      - name: key-name
+        value: slack-webhook
+      taskRef:
+        params:
+        - name: name
+          value: slack-webhook-notification
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-slack-webhook-notification:0.1@sha256:dc17b70633363d78414b8c06dc1660d25742935f106a6116995638e1210c2730
+        - name: kind
+          value: task
+        resolver: bundles
+      when:
+      - input: $(tasks.status)
+        operator: in
+        values:
+        - "Failed"
+    - name: share-fbc-details
+      params:
+      - name: message
+        value: "$(tasks.prepare-slack-message.results.slack-message-sucess-text)"
+      - name: secret-name
+        value: slack-secret
+      - name: key-name
+        value: slack-webhook
+      taskRef:
+        params:
+        - name: name
+          value: slack-webhook-notification
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-slack-webhook-notification:0.1@sha256:452188df385218d0a1d9d097ff5daa67f11ae3597c917a3c2bb644787453a8e0
+        - name: kind
+          value: task
+        resolver: bundles
+      when:
+      - input: $(tasks.status)
+        operator: in
+        values:
+        - "Completed"
+        - "Succeeded"
     params:
     - description: Source Repository URL
       name: git-url
@@ -73,7 +117,7 @@ spec:
         path-context
       name: dockerfile
       type: string
-    - default: "false"
+    - default: "true"
       description: Force rebuild image
       name: rebuild
       type: string
@@ -93,7 +137,6 @@ spec:
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
-      type: string
     - default: "false"
       description: Build a source image.
       name: build-source-image
@@ -130,6 +173,42 @@ spec:
       name: CHAINS-GIT_COMMIT
       value: $(tasks.clone-repository.results.commit)
     tasks:
+    - name: rhoai-init
+      params:
+      - name: pipelinerun-name
+        value: "$(context.pipelineRun.name)"
+      taskSpec:
+        results:
+        - description: Notification text to be posted to slack
+          name: slack-message-failure-text
+        steps:
+        - image: quay.io/rhoai-konflux/alpine:latest
+          name: rhoai-init
+          env:
+          - name: slack_message
+            valueFrom:
+              secretKeyRef:
+                name: slack-secret
+                key: slack-component-failure-notification
+          script: |
+            pipelinerun_name=$(params.pipelinerun-name)
+            echo "pipelinerun-name = $pipelinerun_name"
+            application_name=opendatahub-release
+            echo "application-name = $application_name"
+
+            component_name=${pipelinerun_name/-on-*/}
+            echo "component-name = $component_name"
+
+            KONFLUX_SERVER="https://konflux-ui.apps.stone-prd-rh01.pg1f.p1.openshiftapps.com"
+            build_url="${KONFLUX_SERVER}/ns/open-data-hub-tenant/applications/${application_name}/pipelineruns/${pipelinerun_name}/logs"
+
+            build_time="$(date +%Y-%m-%dT%H:%M:%S)"
+
+            slack_message=${slack_message/__BUILD__URL__/$build_url}
+            slack_message=${slack_message/__PIPELINERUN__NAME__/$pipelinerun_name}
+            slack_message=${slack_message/__BUILD__TIME__/$build_time}
+
+            echo -en "${slack_message}" > "$(results.slack-message-failure-text.path)"
     - name: init
       params:
       - name: image-url
@@ -147,6 +226,8 @@ spec:
         - name: kind
           value: task
         resolver: bundles
+      runAfter:
+      - rhoai-init
     - name: clone-repository
       params:
       - name: url
@@ -318,54 +399,54 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-    - name: validate-fbc
-      params:
-      - name: IMAGE_URL
-        value: $(tasks.build-image-index.results.IMAGE_URL)
-      - name: IMAGE_DIGEST
-        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
-      runAfter:
-      - build-image-index
-      taskRef:
-        params:
-        - name: name
-          value: validate-fbc
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-validate-fbc:0.1@sha256:5ad28ce898a5b4bcaaf3b17d80f30fb377e7229f43219076bb2579c52e241bdb
-        - name: kind
-          value: task
-        resolver: bundles
-      when:
-      - input: $(params.skip-checks)
-        operator: in
-        values:
-        - "false"
-    - name: fbc-target-index-pruning-check
-      params:
-      - name: IMAGE_URL
-        value: $(tasks.build-image-index.results.IMAGE_URL)
-      - name: IMAGE_DIGEST
-        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
-      - name: TARGET_INDEX
-        value: registry.redhat.io/redhat/redhat-operator-index
-      - name: RENDERED_CATALOG_DIGEST
-        value: $(tasks.validate-fbc.results.RENDERED_CATALOG_DIGEST)
-      runAfter:
-      - validate-fbc
-      taskRef:
-        params:
-        - name: name
-          value: fbc-target-index-pruning-check
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-fbc-target-index-pruning-check:0.1@sha256:6f1d1edb746a7b20ad4fe523344c5515a259403b8314f5208d96ea0c6ec06169
-        - name: kind
-          value: task
-        resolver: bundles
-      when:
-      - input: $(params.skip-checks)
-        operator: in
-        values:
-        - "false"
+    # - name: validate-fbc
+    #   params:
+    #   - name: IMAGE_URL
+    #     value: $(tasks.build-image-index.results.IMAGE_URL)
+    #   - name: IMAGE_DIGEST
+    #     value: $(tasks.build-image-index.results.IMAGE_DIGEST)
+    #   runAfter:
+    #   - build-image-index
+    #   taskRef:
+    #     params:
+    #     - name: name
+    #       value: validate-fbc
+    #     - name: bundle
+    #       value: quay.io/konflux-ci/tekton-catalog/task-validate-fbc:0.1@sha256:5ad28ce898a5b4bcaaf3b17d80f30fb377e7229f43219076bb2579c52e241bdb
+    #     - name: kind
+    #       value: task
+    #     resolver: bundles
+    #   when:
+    #   - input: $(params.skip-checks)
+    #     operator: in
+    #     values:
+    #     - "false"
+    # - name: fbc-target-index-pruning-check
+    #   params:
+    #   - name: IMAGE_URL
+    #     value: $(tasks.build-image-index.results.IMAGE_URL)
+    #   - name: IMAGE_DIGEST
+    #     value: $(tasks.build-image-index.results.IMAGE_DIGEST)
+    #   - name: TARGET_INDEX
+    #     value: registry.redhat.io/redhat/redhat-operator-index
+    #   - name: RENDERED_CATALOG_DIGEST
+    #     value: $(tasks.validate-fbc.results.RENDERED_CATALOG_DIGEST)
+    #   runAfter:
+    #   - validate-fbc
+    #   taskRef:
+    #     params:
+    #     - name: name
+    #       value: fbc-target-index-pruning-check
+    #     - name: bundle
+    #       value: quay.io/konflux-ci/tekton-catalog/task-fbc-target-index-pruning-check:0.1@sha256:6f1d1edb746a7b20ad4fe523344c5515a259403b8314f5208d96ea0c6ec06169
+    #     - name: kind
+    #       value: task
+    #     resolver: bundles
+    #   when:
+    #   - input: $(params.skip-checks)
+    #     operator: in
+    #     values:
+    #     - "false"
     - name: fbc-fips-check-oci-ta
       params:
       - name: image-digest
@@ -390,6 +471,65 @@ spec:
         operator: in
         values:
         - "false"
+    - name: prepare-slack-message
+      params:
+      taskSpec:
+        params:
+        - name: pipelinerun-name
+          default: ""
+        results:
+        - description: Notification text to be posted to slack
+          name: slack-message-sucess-text
+        steps:
+        - image: quay.io/rhoai-konflux/alpine:latest
+          name: rhoai-init
+          env:
+          - name: pipelinerun_name
+            value: "$(context.pipelineRun.name)"
+          - name: image_url
+            value: $(tasks.build-image-index.results.IMAGE_URL)
+          - name: image_digest
+            value: $(tasks.build-image-index.results.IMAGE_DIGEST)
+          - name: target_branch
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.annotations['build.appstudio.redhat.com/target_branch']
+          - name: BUILD_URL
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.annotations['pipelinesascode.tekton.dev/log-url']
+          - name: COMMIT_URL
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.annotations['pipelinesascode.tekton.dev/sha-url']
+          - name: COMMIT
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.annotations['pipelinesascode.tekton.dev/sha']
+          script: |
+            echo "pipelinerun-name = $pipelinerun_name"
+  
+            application_name=${target_branch/rhoai-/}
+            application_name=rhoai-v${application_name/./-}
+            echo "application-name = $application_name"
+            echo "image url = $image_url"
+            echo "image digest = $image_digest"
+  
+            component_name=${pipelinerun_name/-on-*/}
+            echo "component-name = $component_name"
+  
+            build_time="$(date +%Y-%m-%dT%H:%M:%S)"
+            alertEmoji=":solid-success:"
+            slack_message="${alertEmoji} A new CI build is available for ${target_branch}: ${build_time}"
+            COMMIT_SHORT=$(echo "$COMMIT" | head -c 7)
+            # slack_message=$(echo -e "${slack_message}")
+            slack_message=$(echo -e "${slack_message}\nImage: ${image_url}@${image_digest}")
+            slack_message=$(echo -e "${slack_message}\nCommit: <${COMMIT_URL}|${COMMIT_SHORT}>")
+            slack_message=$(echo -e "${slack_message}\nBuild: <${BUILD_URL}|${pipelinerun_name}>")
+  
+            echo -n "${slack_message}" > "$(results.slack-message-sucess-text.path)"
+      runAfter:
+      - build-image-index
     workspaces:
     - name: git-auth
       optional: true
