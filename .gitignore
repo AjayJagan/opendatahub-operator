@@ -64,4 +64,4 @@ local.mk
 *.mktmp.*
 
 # Ignore catalog related files
-catalog/
+# catalog/
