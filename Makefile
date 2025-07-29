@@ -3,7 +3,7 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 2.30.0
+VERSION ?= 1.0.0
 # IMAGE_TAG_BASE defines the opendatahub.io namespace and part of the image name for remote images.
 # This variable is used to construct full image tags for bundle and catalog images.
 #
@@ -12,7 +12,7 @@ VERSION ?= 2.30.0
 IMAGE_TAG_BASE ?= quay.io/opendatahub/opendatahub-operator
 
 # keep the name based on IMG which already used from command line
-IMG_TAG ?= konflux-multi-arch
+IMG_TAG ?= v1.0.0
 # Update IMG to a variable, to keep it consistent across versions for OpenShift CI
 IMG ?= $(IMAGE_TAG_BASE):$(IMG_TAG)
 # BUNDLE_IMG defines the image:tag used for the bundle.
