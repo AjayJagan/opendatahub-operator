@@ -12,7 +12,7 @@ VERSION ?= 2.30.0
 IMAGE_TAG_BASE ?= quay.io/opendatahub/opendatahub-operator
 
 # keep the name based on IMG which already used from command line
-IMG_TAG ?= latest
+IMG_TAG ?= konflux-multi-arch
 # Update IMG to a variable, to keep it consistent across versions for OpenShift CI
 IMG ?= $(IMAGE_TAG_BASE):$(IMG_TAG)
 # BUNDLE_IMG defines the image:tag used for the bundle.

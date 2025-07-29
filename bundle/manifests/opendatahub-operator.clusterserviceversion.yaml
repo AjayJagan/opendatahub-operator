@@ -1316,7 +1316,7 @@ spec:
                   value: /opt/manifests
                 - name: ODH_PLATFORM_TYPE
                   value: OpenDataHub
-                image: REPLACE_IMAGE:latest
+                image: quay.io/redhat-user-workloads/open-data-hub-tenant/opendatahub-operator-multi-arch-poc:konflux-multi-arch
                 imagePullPolicy: Always
                 livenessProbe:
                   httpGet:

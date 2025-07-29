@@ -23,10 +23,10 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/open-data-hub-tenant/opendatahub-operator-multi-arch-poc:{{revision}}
-  - name: build-platforms
+    value: quay.io/redhat-user-workloads/open-data-hub-tenant/opendatahub-operator-multi-arch-poc:konflux-multi-arch
     value:
     - linux/x86_64
+    - linux/arm64
   - name: dockerfile
     value: Dockerfiles/Dockerfile
   - name: path-context
