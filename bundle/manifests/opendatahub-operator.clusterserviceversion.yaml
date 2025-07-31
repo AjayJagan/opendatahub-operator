@@ -125,6 +125,9 @@ metadata:
       "feastoperators.components.platform.opendatahub.io", "llamastackoperators.components.platform.opendatahub.io"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
     repository: https://github.com/opendatahub-io/opendatahub-operator
+  labels:
+    operatorframework.io/arch.amd64: supported
+    operatorframework.io/arch.arm64: supported
   name: opendatahub-operator.v1.0.0
   namespace: placeholder
 spec:
