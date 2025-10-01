@@ -1520,14 +1520,14 @@ spec:
                           - "Removed" : the operator is actively managing the component and will not install it,
                                         or if it is installed, the operator will try to remove it
                         enum:
-                        - Managed
-                        - Removed
+                          - Managed
+                          - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
                     type: object
-                  datasciencepipelines:
+                  aipipelines:
                     description: |-
-                      DataSciencePipeline component configuration.
+                      AIPipelines component configuration.
                       Requires OpenShift Pipelines Operator to be installed before enable component
                     properties:
                       argoWorkflowsControllers:
@@ -2230,15 +2230,15 @@ spec:
                           - "Removed" : the operator is actively managing the component and will not install it,
                                         or if it is installed, the operator will try to remove it
                         enum:
-                        - Managed
-                        - Removed
+                          - Managed
+                          - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
                       url:
                         type: string
                     type: object
-                  datasciencepipelines:
-                    description: DataSciencePipeline component status.
+                  aipipelines:
+                    description: AIPipelines component status.
                     properties:
                       managementState:
                         description: |-
@@ -2272,7 +2272,6 @@ spec:
                         x-kubernetes-list-map-keys:
                         - name
                         x-kubernetes-list-type: map
-                    type: object
                   feastoperator:
                     description: Feast Operator component status.
                     properties:
