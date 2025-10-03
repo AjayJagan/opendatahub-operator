@@ -1634,8 +1634,8 @@ spec:
                           - "Removed" : the operator is actively managing the component and will not install it,
                                         or if it is installed, the operator will try to remove it
                         enum:
-                        - Managed
-                        - Removed
+                          - Managed
+                          - Removed
                         pattern: ^(Managed|Unmanaged|Force|Removed)$
                         type: string
                     type: object
