@@ -25,13 +25,13 @@ function parseManifestFile(filePath) {
 
     const refParts = ref.split('@');
     if (refParts.length !== 2) {
-      console.log(`⚠️  Skipping ${componentName}: invalid ref format "${ref}" (expected "branch@sha")`);
+      console.log(`Skipping ${componentName}: invalid ref format "${ref}" (expected "branch@sha")`);
       continue;
     }
 
     const [branchRef, commitSha] = refParts;
     if (!branchRef || !commitSha) {
-      console.log(`⚠️  Skipping ${componentName}: empty branch or SHA in ref "${ref}"`);
+      console.log(`Skipping ${componentName}: empty branch or SHA in ref "${ref}"`);
       continue;
     }
 
@@ -51,7 +51,7 @@ function parseManifestFile(filePath) {
 
 // Get the latest commit SHA for a repository reference
 async function getLatestCommitSha(octokit, org, repo, ref) {
-  console.log(`🔍 Fetching latest commit for ${org}/${repo}:${ref}`);
+  console.log(`Fetching latest commit for ${org}/${repo}:${ref}`);
   const { data } = await octokit.rest.repos.getCommit({
     owner: org,
     repo: repo,
@@ -77,7 +77,7 @@ function updateManifestFile(filePath, componentsToUpdate) {
     if (content.includes(oldLine)) {
       content = content.replace(oldLine, newLine);
       hasChanges = true;
-      console.log(`✅ Updated ${componentName}: ${updateInfo.commitSha} → ${updateInfo.newCommitSha}`);
+      console.log(`Updated ${componentName}: ${updateInfo.commitSha} → ${updateInfo.newCommitSha}`);
     }
   }
 
@@ -88,8 +88,8 @@ function updateManifestFile(filePath, componentsToUpdate) {
   return hasChanges;
 }
 
-module.exports = async function({ github, core }) {
-  console.log('🚀 Starting manifest SHA update process...');
+module.exports = async function ({ github, core }) {
+  console.log('Starting manifest SHA update process...');
 
   const manifestFile = 'get_all_manifests.sh';
   const componentsToUpdate = parseManifestFile(manifestFile);
@@ -100,14 +100,14 @@ module.exports = async function({ github, core }) {
     const latestSha = await getLatestCommitSha(github, manifest.org, manifest.repo, manifest.ref);
 
     if (latestSha !== manifest.commitSha && manifest.commitSha) {
-      console.log(`✅ Update needed for ${componentName}: ${manifest.commitSha} → ${latestSha}`);
+      console.log(`Update needed for ${componentName}: ${manifest.commitSha} → ${latestSha}`);
 
       componentsToUpdate.set(componentName, {
         ...manifest,
         newCommitSha: latestSha
       });
     } else {
-      console.log(`ℹ️  No update needed for ${componentName}`);
+      console.log(`No update needed for ${componentName}`);
       componentsToUpdate.delete(componentName);
     }
   }
@@ -117,13 +117,13 @@ module.exports = async function({ github, core }) {
   core.setOutput('updates-needed', hasUpdates);
 
   if (!hasUpdates) {
-    console.log('✅ All manifest references are up to date');
+    console.log('All manifest references are up to date');
     return;
   }
 
   // Update manifest file
-  console.log('📝 Updating manifest file...');
+  console.log('Updating manifest file...');
   updateManifestFile(manifestFile, componentsToUpdate);
 
-  console.log(`✅ Successfully processed ${componentsToUpdate.size} manifest updates`);
+  console.log(`Successfully processed ${componentsToUpdate.size} manifest updates`);
 }
