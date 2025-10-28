@@ -1,119 +1,63 @@
-const fs = require('fs');
+const { getLatestCommitSha, parseManifestFile, updateManifestFile } = require('./manifest-utils');
 
-// Parse the get_all_manifests.sh file to extract component definitions
-function parseManifestFile(filePath) {
-  const content = fs.readFileSync(filePath, 'utf8');
-  const componentsToUpdate = new Map();
+module.exports = async function ({ github, core }) {
 
-  // Regex to match component manifest definitions (line by line, no global flag)
-  // Pattern: ["component"]="org:repo:ref@sha:path"
-  const manifestRegex = /^\s*\["([^"]+)"\]="([^:]+):([^:]+):([^:]+):([^"]+)"$/;
+  const manifestFile = 'get_all_manifests.sh';
+  const allComponents = parseManifestFile(manifestFile);
 
-  // Process each line individually to prevent multiline matches
-  const lines = content.split('\n');
-  for (const line of lines) {
-    const match = line.match(manifestRegex);
-    if (!match) {
+  // Filter to only components with branch@sha format
+  const componentsWithSha = new Map();
+  for (const [componentName, componentInfo] of allComponents) {
+    if (!componentInfo.ref.includes('@')) {
       continue;
     }
 
-    const [fullMatch, componentName, org, repo, ref, sourcePath] = match;
-
-    if (!ref.includes('@')) {
-      continue;
-    }
-
-    const refParts = ref.split('@');
+    const refParts = componentInfo.ref.split('@');
     if (refParts.length !== 2) {
-      console.log(`Skipping ${componentName}: invalid ref format "${ref}" (expected "branch@sha")`);
+      console.log(`Skipping ${componentName}: invalid ref format "${componentInfo.ref}" (expected "branch@sha")`);
       continue;
     }
 
     const [branchRef, commitSha] = refParts;
     if (!branchRef || !commitSha) {
-      console.log(`Skipping ${componentName}: empty branch or SHA in ref "${ref}"`);
+      console.log(`Skipping ${componentName}: empty branch or SHA in ref "${componentInfo.ref}"`);
       continue;
     }
 
-    componentsToUpdate.set(componentName, {
-      org,
-      repo,
-      ref: branchRef,
-      commitSha,
-      sourcePath,
-      originalLine: fullMatch.trim()
+    componentsWithSha.set(componentName, {
+      ...componentInfo,
+      branchRef,
+      commitSha
     });
   }
 
-  console.log(`Parsed ${componentsToUpdate.size} components from ${filePath}`);
-  return componentsToUpdate;
-}
+  console.log(`Found ${componentsWithSha.size} components with branch@sha format`);
 
-// Get the latest commit SHA for a repository reference
-async function getLatestCommitSha(octokit, org, repo, ref) {
-  console.log(`Fetching latest commit for ${org}/${repo}:${ref}`);
-  const { data } = await octokit.rest.repos.getCommit({
-    owner: org,
-    repo: repo,
-    ref: ref
-  });
+  const updates = new Map();
 
-  return data.sha;
-}
+  for (const [componentName, manifest] of componentsWithSha) {
+    console.log(`Checking ${componentName} (${manifest.org}/${manifest.repo}:${manifest.branchRef})...`);
 
-// Update the manifest file with new SHAs
-function updateManifestFile(filePath, componentsToUpdate) {
-  if (componentsToUpdate.size === 0) {
-    return false;
-  }
+    const latestSha = await getLatestCommitSha(github, manifest.org, manifest.repo, manifest.branchRef);
 
-  let content = fs.readFileSync(filePath, 'utf8');
-  let hasChanges = false;
+    if (latestSha && latestSha !== manifest.commitSha) {
+      console.log(`Update needed for ${componentName}: ${manifest.commitSha.substring(0, 8)} → ${latestSha.substring(0, 8)}`);
 
-  for (const [componentName, updateInfo] of componentsToUpdate) {
-    const oldLine = updateInfo.originalLine;
-    const newLine = `["${componentName}"]="${updateInfo.org}:${updateInfo.repo}:${updateInfo.ref}@${updateInfo.newCommitSha}:${updateInfo.sourcePath}"`;
-
-    if (content.includes(oldLine)) {
-      content = content.replace(oldLine, newLine);
-      hasChanges = true;
-      console.log(`Updated ${componentName}: ${updateInfo.commitSha} → ${updateInfo.newCommitSha}`);
-    }
-  }
-
-  if (hasChanges) {
-    fs.writeFileSync(filePath, content);
-  }
-
-  return hasChanges;
-}
-
-module.exports = async function ({ github, core }) {
-  console.log('Starting manifest SHA update process...');
-
-  const manifestFile = 'get_all_manifests.sh';
-  const componentsToUpdate = parseManifestFile(manifestFile);
-
-  for (const [componentName, manifest] of componentsToUpdate) {
-    console.log(`Checking ${componentName} (${manifest.org}/${manifest.repo}:${manifest.ref})...`);
-
-    const latestSha = await getLatestCommitSha(github, manifest.org, manifest.repo, manifest.ref);
-
-    if (latestSha !== manifest.commitSha && manifest.commitSha) {
-      console.log(`Update needed for ${componentName}: ${manifest.commitSha} → ${latestSha}`);
-
-      componentsToUpdate.set(componentName, {
-        ...manifest,
-        newCommitSha: latestSha
+      updates.set(componentName, {
+        org: manifest.org,
+        repo: manifest.repo,
+        newRef: `${manifest.branchRef}@${latestSha}`,
+        sourcePath: manifest.sourcePath,
+        originalLine: manifest.originalLine,
+        logMessage: `Updated ${componentName}: ${manifest.commitSha.substring(0, 8)} → ${latestSha.substring(0, 8)}`
       });
     } else {
       console.log(`No update needed for ${componentName}`);
-      componentsToUpdate.delete(componentName);
     }
   }
 
   // Set outputs
-  const hasUpdates = componentsToUpdate.size > 0;
+  const hasUpdates = updates.size > 0;
   core.setOutput('updates-needed', hasUpdates);
 
   if (!hasUpdates) {
@@ -123,7 +67,7 @@ module.exports = async function ({ github, core }) {
 
   // Update manifest file
   console.log('Updating manifest file...');
-  updateManifestFile(manifestFile, componentsToUpdate);
+  updateManifestFile(manifestFile, updates);
 
-  console.log(`Successfully processed ${componentsToUpdate.size} manifest updates`);
+  console.log(`Successfully processed ${updates.size} manifest updates`);
 }
