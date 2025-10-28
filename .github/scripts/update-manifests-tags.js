@@ -48,30 +48,41 @@ module.exports = ({ core }) => {
 
     // Update refs
     for (const [component, newRef] of updates) {
-        // Escape special regex characters in component name and ref
-        const escapedComponent = component.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedRef = newRef.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Component name might have dashes (from env var) but manifest file might have slashes
+        // Cases to handle:
+        // 1. dashboard -> dashboard
+        // 2. workbenches-notebooks -> workbenches/notebooks
+        // 3. odh-notebook-controller -> workbenches/odh-notebook-controller (special case)
+        // 4. kf-notebook-controller -> workbenches/kf-notebook-controller (special case)
+        const componentVariants = [
+            component,
+            component.replace('-', '/'),  // Replace first dash with slash
+            `workbenches/${component}`    // Try with workbenches/ prefix (for special notebook-controller case)
+        ];
 
-        // Pattern to match: ["component"]="org:repo:old-ref:path"
-        // Also handles paths with component name like: ["workbenches/notebooks"]="..."
-        let pattern = new RegExp(
-            `(\\["${escapedComponent}"\\]="[^:]+:[^:]+:)([^:]+)(:+[^"]+")`,
-            'g'
-        );
-
+        let updated = false;
         let originalContent = content;
-        content = content.replace(pattern, `$1${newRef}$3`);
 
-        if (content === originalContent) {
-            // Try with path prefix (e.g., workbenches/notebooks)
-            pattern = new RegExp(
-                `(\\["[^"]*/${escapedComponent}"\\]="[^:]+:[^:]+:)([^:]+)(:+[^"]+")`,
+        for (const variant of componentVariants) {
+            // Escape special regex characters in component name and ref
+            const escapedComponent = variant.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const escapedRef = newRef.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+            // Pattern to match: ["component"]="org:repo:old-ref:path"
+            const pattern = new RegExp(
+                `(\\["${escapedComponent}"\\]="[^:]+:[^:]+:)([^:]+)(:+[^"]+")`,
                 'g'
             );
+
             content = content.replace(pattern, `$1${newRef}$3`);
+
+            if (content !== originalContent) {
+                updated = true;
+                break;
+            }
         }
 
-        if (content !== originalContent) {
+        if (updated) {
             console.log(`  ✅ Updated ${component}`);
         } else {
             console.log(`  ⚠️  Warning: Could not find ${component} in manifest file`);
@@ -80,26 +91,34 @@ module.exports = ({ core }) => {
 
     // Update orgs
     for (const [component, newOrg] of orgUpdates) {
-        const escapedComponent = component.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Component name might have dashes (from env var) but manifest file might have slashes
+        const componentVariants = [
+            component,
+            component.replace('-', '/'),
+            `workbenches/${component}`
+        ];
 
-        // Pattern to match: ["component"]="org:repo:ref:path"
-        let pattern = new RegExp(
-            `(\\["${escapedComponent}"\\]=")([^:]+)(:+[^"]+")`,
-            'g'
-        );
-
+        let updated = false;
         let originalContent = content;
-        content = content.replace(pattern, `$1${newOrg}$3`);
 
-        if (content === originalContent) {
-            pattern = new RegExp(
-                `(\\["[^"]*/${escapedComponent}"\\]=")([^:]+)(:+[^"]+")`,
+        for (const variant of componentVariants) {
+            const escapedComponent = variant.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+            // Pattern to match: ["component"]="org:repo:ref:path"
+            const pattern = new RegExp(
+                `(\\["${escapedComponent}"\\]=")([^:]+)(:+[^"]+")`,
                 'g'
             );
+
             content = content.replace(pattern, `$1${newOrg}$3`);
+
+            if (content !== originalContent) {
+                updated = true;
+                break;
+            }
         }
 
-        if (content !== originalContent) {
+        if (updated) {
             console.log(`  ✅ Updated org for ${component}`);
         }
     }
