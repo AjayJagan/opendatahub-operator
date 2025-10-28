@@ -1,18 +1,4 @@
-// Helper function to get the latest commit SHA for a repository reference
-async function getLatestCommitSha(github, org, repo, ref) {
-    try {
-        console.log(`  Fetching latest commit SHA for ${org}/${repo}:${ref}`)
-        const { data } = await github.rest.repos.getCommit({
-            owner: org,
-            repo: repo,
-            ref: ref
-        });
-        return data.sha;
-    } catch (error) {
-        console.error(`  ⚠️  Failed to fetch commit SHA for ${org}/${repo}:${ref}: ${error.message}`);
-        return null;
-    }
-}
+const { getLatestCommitSha } = require('./manifest-utils');
 
 module.exports = async ({ github, core }) => {
     const { TRACKER_URL } = process.env
@@ -34,70 +20,61 @@ module.exports = async ({ github, core }) => {
             }
         });
 
-        // Collect all components to process
-        const componentsToProcess = [];
+        const regex = /\s*[A-Za-z-_0-9/]+\s*\|\s*(https:\/\/github\.com\/.*(tree|releases).*){1}\s*\|?\s*(https:\/\/github\.com\/.*releases.*)?\s*/;
 
-        result.data.forEach((issue) => {
-            let issueCommentBody = issue.body_text
-            if (issueCommentBody.includes("#Release#")) {
-                let components = issueCommentBody.split("\n")
-                const releaseIdx = components.indexOf("#Release#")
-                components = components.splice(releaseIdx + 1, components.length)
-                const regex = /\s*[A-Za-z-_0-9/]+\s*\|\s*(https:\/\/github\.com\/.*(tree|releases).*){1}\s*\|?\s*(https:\/\/github\.com\/.*releases.*)?\s*/;
-
-                components.forEach(component => {
-                    if (regex.test(component)) {
-                        const [componentName, branchOrTagUrl] = component.split("|")
-                        const splitArr = branchOrTagUrl.trim().split("/")
-                        let idx = null
-                        if (splitArr.includes("tag")) {
-                            idx = splitArr.indexOf("tag")
-                        } else if (splitArr.includes("tree")) {
-                            idx = splitArr.indexOf("tree")
-                        }
-                        const branchName = splitArr.slice(idx + 1).join("/")
-                        const repoOrg = splitArr[3]
-                        const repoName = splitArr[4]
-
-                        componentsToProcess.push({
-                            componentName: componentName.trim(),
-                            branchName,
-                            repoOrg,
-                            repoName
-                        });
-                    }
-                })
+        for (const issue of result.data) {
+            const issueCommentBody = issue.body_text;
+            if (!issueCommentBody.includes("#Release#")) {
+                continue;
             }
-        })
 
-        console.log(`Found ${componentsToProcess.length} components in tracker issue`);
+            const lines = issueCommentBody.split("\n");
+            const releaseIdx = lines.indexOf("#Release#");
+            const componentLines = lines.slice(releaseIdx + 1);
 
-        // Process each component and fetch commit SHAs
-        for (const comp of componentsToProcess) {
-            console.log(`Processing component: ${comp.componentName}`);
-
-            // Fetch the commit SHA for this branch/tag
-            const commitSha = await getLatestCommitSha(github, comp.repoOrg, comp.repoName, comp.branchName);
-
-            // Handle special case for notebook-controller
-            if (comp.componentName === "workbenches/notebook-controller") {
-                core.exportVariable("component_spec_odh-notebook-controller".toLowerCase(), comp.branchName);
-                core.exportVariable("component_spec_kf-notebook-controller".toLowerCase(), comp.branchName);
-                core.exportVariable("component_org_odh-notebook-controller".toLowerCase(), comp.repoOrg);
-                core.exportVariable("component_org_kf-notebook-controller".toLowerCase(), comp.repoOrg);
-
-                if (commitSha) {
-                    core.exportVariable("component_sha_odh-notebook-controller".toLowerCase(), commitSha);
-                    core.exportVariable("component_sha_kf-notebook-controller".toLowerCase(), commitSha);
+            for (const component of componentLines) {
+                if (!regex.test(component)) {
+                    continue;
                 }
-            } else {
-                const normalizedName = comp.componentName.toLowerCase().replace(/\//g, '-');
-                core.exportVariable("component_spec_" + normalizedName, comp.branchName);
-                core.exportVariable("component_org_" + normalizedName, comp.repoOrg);
 
-                if (commitSha) {
-                    core.exportVariable("component_sha_" + normalizedName, commitSha);
-                    console.log(`  ✅ Set SHA for ${comp.componentName}: ${commitSha.substring(0, 8)}`);
+                const [componentName, branchOrTagUrl] = component.split("|");
+                const splitArr = branchOrTagUrl.trim().split("/");
+
+                let idx = null;
+                if (splitArr.includes("tag")) {
+                    idx = splitArr.indexOf("tag");
+                } else if (splitArr.includes("tree")) {
+                    idx = splitArr.indexOf("tree");
+                }
+
+                const branchName = splitArr.slice(idx + 1).join("/");
+                const repoOrg = splitArr[3];
+                const repoName = splitArr[4];
+                const trimmedComponentName = componentName.trim();
+                console.log(`Processing component: ${trimmedComponentName}`);
+
+                const commitSha = await getLatestCommitSha(github, repoOrg, repoName, branchName);
+
+                // Handle special case for notebook-controller
+                if (trimmedComponentName === "workbenches/notebook-controller") {
+                    core.exportVariable("component_spec_odh-notebook-controller".toLowerCase(), branchName);
+                    core.exportVariable("component_spec_kf-notebook-controller".toLowerCase(), branchName);
+                    core.exportVariable("component_org_odh-notebook-controller".toLowerCase(), repoOrg);
+                    core.exportVariable("component_org_kf-notebook-controller".toLowerCase(), repoOrg);
+
+                    if (commitSha) {
+                        core.exportVariable("component_sha_odh-notebook-controller".toLowerCase(), commitSha);
+                        core.exportVariable("component_sha_kf-notebook-controller".toLowerCase(), commitSha);
+                    }
+                } else {
+                    const normalizedName = trimmedComponentName.toLowerCase().replace(/\//g, '-');
+                    core.exportVariable("component_spec_" + normalizedName, branchName);
+                    core.exportVariable("component_org_" + normalizedName, repoOrg);
+
+                    if (commitSha) {
+                        core.exportVariable("component_sha_" + normalizedName, commitSha);
+                        console.log(`Set SHA for ${trimmedComponentName}: ${commitSha.substring(0, 8)}`);
+                    }
                 }
             }
         }
