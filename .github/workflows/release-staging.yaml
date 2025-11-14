@@ -77,12 +77,17 @@ jobs:
         echo ""
         git diff get_all_manifests.sh || echo "No changes detected"
 
+    - name: Add and commit bundle to release branch
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add -f odh-bundle/
+        git add .
+        git commit -m "ODH Release ${{ env.VERSION }}: Update release branch with bundle"
+
     - name: Push changes to release branch
-      uses: actions-js/push@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: odh-${{ env.VERSION }}
-        message: "ODH Release ${{ env.VERSION }}: Update release branch"
+      run: |
+        git push origin odh-${{ env.VERSION }}
 
     - name: Create and push tag
       run: |
