@@ -1,6 +1,6 @@
 module github.com/opendatahub-io/opendatahub-operator/v2
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/blang/semver/v4 v4.0.0
@@ -86,7 +86,7 @@ require (
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/oauth2 v0.27.0 // indirect
+	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/term v0.31.0 // indirect
