@@ -15,11 +15,11 @@ DST_CHARTS_DIR="./opt/charts"
 
 # ODH Component Manifests
 declare -A ODH_COMPONENT_MANIFESTS=(
-    ["dashboard"]="opendatahub-io:odh-dashboard:main@f367034037e76c7b77156093d5563067baa2abe3:manifests"
+    ["dashboard"]="opendatahub-io:odh-dashboard:v3.4.3-odh@12e498e0a988bd9fc6b7ebc2d751ea329e20e571:manifests"
     ["workbenches/kf-notebook-controller"]="opendatahub-io:kubeflow:main@f09b56e860ff88bcc05668b3f517791cdccd5b4d:components/notebook-controller/config"
     ["workbenches/odh-notebook-controller"]="opendatahub-io:kubeflow:main@f09b56e860ff88bcc05668b3f517791cdccd5b4d:components/odh-notebook-controller/config"
     ["workbenches/notebooks"]="opendatahub-io:notebooks:main@b3803ad4e49d09613f01f8362d5455fd70da204b:manifests"
-    ["kserve"]="opendatahub-io:kserve:release-v0.17@5807eceb6db0de0e865fcedbb84ffe06ff9224e1:config"
+    ["kserve"]="opendatahub-io:kserve:odh-v3.5-EA1@1fed5662493338f26c50009f94ea79b27e8e130b:config"
     ["ray"]="opendatahub-io:kuberay:dev@a05db5b9c89f67087d1ecbf091f56c8a4599d689:ray-operator/config"
     ["trustyai"]="opendatahub-io:trustyai-service-operator:incubation@de96668b0690db47574bab3ff737e5748be235ee:config"
     ["modelregistry"]="opendatahub-io:model-registry-operator:main@a982cf87b95fb3054aa4333a6bedb6df1bff1616:config"
@@ -31,7 +31,7 @@ declare -A ODH_COMPONENT_MANIFESTS=(
     ["trainer"]="opendatahub-io:trainer:stable@51baadf644cd5d2c1672f1c658be46ad82f01b44:manifests"
     ["maas"]="opendatahub-io:models-as-a-service:stable@322a2753643fefe47920d22a41fadeb4587993da:deployment"
     ["mlflowoperator"]="opendatahub-io:mlflow-operator:main@4cccfcc2dd8576cabbf255f66894d801a68eb844:config"
-    ["sparkoperator"]="opendatahub-io:spark-operator:main@bc7885e2d34a9a0293672c1e8155e5446dcc0722:config"
+    ["sparkoperator"]="opendatahub-io:spark-operator:odh-3.5.0-ea.1@b8a995788a0bd700354170600d0813db8a597241:config"
     ["wva"]="opendatahub-io:workload-variant-autoscaler:main@0641ee03e8430cce5821797137b1b53bf70b98a2:config"
 )
 
