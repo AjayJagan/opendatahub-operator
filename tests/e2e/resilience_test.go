@@ -261,7 +261,7 @@ func (tc *OperatorResilienceTestCtx) ValidateMissingComponentsCRDHandling(t *tes
 
 	skipUnless(t, Tier1)
 
-	crdTestingName := "dashboards.components.platform.opendatahub.io"
+	crdTestingName := "kueues.components.platform.opendatahub.io"
 	crd := tc.FetchResource(
 		WithMinimalObject(gvk.CustomResourceDefinition, types.NamespacedName{Name: crdTestingName}),
 	)
