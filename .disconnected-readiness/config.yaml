@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/AjayJagan/disconnected-readiness-scorer/main/schemas/config.schema.json
+#
+# Per-repository configuration for disconnected readiness scanning.
+# This file allows you to customize scanner behavior for this specific repository.
+#
+# Documentation: https://github.com/AjayJagan/disconnected-readiness-scorer
+# Schema reference: https://github.com/AjayJagan/disconnected-readiness-scorer/blob/main/schemas/config.schema.json
